@@ -1,0 +1,16 @@
+---
+peripherals:
+  - id: led_out
+    conf: 
+      !DigitalOutput
+        pin: 5
+
+systems:
+  - id: main
+    event_loop:
+      !FixedIntervalLoop
+        interval: 10
+        unit: ms
+    sources: 
+      - led_out
+

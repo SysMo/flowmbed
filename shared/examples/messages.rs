@@ -1,6 +1,6 @@
-extern crate embflow_shared;
-use embflow_shared::messages as msg;
-use embflow_shared::messages::{dynsys as rdf};
+extern crate flowmbed_shared;
+use flowmbed_shared::messages as msg;
+use flowmbed_shared::messages::{dynsys as rdf};
 
 fn main() {
     msg::SystemMessage::test_round_trip(
