@@ -1,0 +1,42 @@
+[package]
+name = "reform-esp"
+version = "0.1.0"
+authors = ["Atanas Pavlov <nasko.js@gmail.com>"]
+edition = "2021"
+resolver = "2"
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[features]
+pio = ["esp-idf-sys/pio"]
+
+[dependencies]
+esp-idf-sys = { version = "0.31.11", features = ["binstart"] }
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
+esp-idf-hal = "0.39.3"
+esp-idf-svc = { version = "0.43.4", features = ["std", "experimental"]}
+embedded-svc = "0.23.1"
+
+anyhow = {version = "1", features = ["backtrace"]}
+# toml-cfg = "0.1"
+log = "0.4"
+url = "2"
+
+# esp32 = "0.16.0"
+
+# rumqttc = "0.10.0"
+# rand = "0.8.4"
+# anyhow = "1.0"
+
+# get-uuid = { path = "../../../common/lib/get-uuid" }
+# mqtt-messages = { path = "../../../common/lib/mqtt-messages" }
+
+[build-dependencies]
+embuild = "0.30.4"
+anyhow = "1"
