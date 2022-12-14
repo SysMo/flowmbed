@@ -11,6 +11,7 @@ serde_json = "1.0"
 const-default = "1.0.0"
 const-default-derive = "*"
 anyhow = {version = "1", features = ["backtrace"]}
+embedded-hal = "=1.0.0-alpha.9"
 
 [dependencies.uuid]
 version = "1.2.2"

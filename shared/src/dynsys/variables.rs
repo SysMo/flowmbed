@@ -28,3 +28,16 @@ pub struct DiscreteState<'a, T> {
   pub id: usize,
   pub access: &'a dyn StorageAccess<'a, DiscreteState<'a, T>, T>
 }
+
+impl<'a, T> DiscreteState<'a, T> {
+  pub fn update(&self, value: T) {
+    self.access.set(self.id, value).unwrap();
+  }
+}
+
+impl<'a, T: Copy> Deref for DiscreteState<'a, T> {
+  type Target = T;
+  fn deref(&self) -> &Self::Target {
+      self.access.get(self.id)
+  }
+}
