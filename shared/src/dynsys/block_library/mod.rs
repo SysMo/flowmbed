@@ -1,1 +1,2 @@
-pub mod square_source;
+pub mod sources;
+pub mod hardware_sinks;

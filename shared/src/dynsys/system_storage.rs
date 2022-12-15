@@ -1,7 +1,7 @@
 use const_default::ConstDefault;
 use const_default_derive::ConstDefault;
-use std::cell::{RefCell, Ref};
-use super::variables::{Parameter, ContinuousState, ContinuousStateDerivative, DiscreteState};
+use super::variables::{Parameter, DiscreteState, Output, Input};
+use std::ops::Add;
 
 #[allow(dead_code)]
 #[derive(Default, Debug, ConstDefault, PartialEq, Eq, Clone)]
@@ -10,12 +10,31 @@ pub struct StorageSize {
     pub b_param: usize,
     pub i_param: usize,
 
-    pub r_state: usize,
-    pub b_state: usize,
-    pub i_state: usize,
+    pub r_dstate: usize,
+    pub b_dstate: usize,
+    pub i_dstate: usize,
     
-    // pub r_out: usize,
-    // pub b_out: usize,
+    pub r_out: usize,
+    pub b_out: usize,
+    pub i_out: usize
+}
+
+impl StorageSize {
+  pub const fn add(self, rhs: StorageSize) -> StorageSize {
+    StorageSize {
+      r_param: self.r_param + rhs.r_param,
+      b_param: self.b_param + rhs.b_param,
+      i_param: self.i_param + rhs.i_param,
+  
+      r_dstate: self.r_dstate + rhs.r_dstate,
+      b_dstate: self.b_dstate + rhs.b_dstate,
+      i_dstate: self.i_dstate + rhs.i_dstate,
+      
+      r_out: self.r_out + rhs.r_out,
+      b_out: self.b_out + rhs.b_out,
+      i_out: self.i_out + rhs.i_out
+    }
+  }
 }
 
 pub trait NextIndex<T> {
@@ -37,8 +56,12 @@ macro_rules! next_index_impl {
 next_index_impl!(Parameter, f64, r_param);
 next_index_impl!(Parameter, bool, b_param);
 next_index_impl!(Parameter, i64, i_param);
-next_index_impl!(DiscreteState, bool, b_state);
-next_index_impl!(DiscreteState, i64, i_state);
+next_index_impl!(DiscreteState, f64, r_dstate);
+next_index_impl!(DiscreteState, bool, b_dstate);
+next_index_impl!(DiscreteState, i64, i_dstate);
+next_index_impl!(Output, f64, r_out);
+next_index_impl!(Output, bool, b_out);
+next_index_impl!(Output, i64, i_out);
 
 #[allow(dead_code)]
 impl StorageSize {
@@ -69,14 +92,19 @@ pub trait SystemStorageFacade {
     self.set_value::<Parameter<T>, T>(ind, v)    
   }
 
-  fn set_cont_state<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
-  where Self: StorageAccess<'a, ContinuousState<'a, T>, T> {
-    self.set_value::<ContinuousState<T>, T>(ind, v)
-  }
+  // fn set_cont_state<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
+  // where Self: StorageAccess<'a, ContinuousState<'a, T>, T> {
+  //   self.set_value::<ContinuousState<T>, T>(ind, v)
+  // }
 
   fn set_discrete_state<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
   where Self: StorageAccess<'a, DiscreteState<'a, T>, T> {
     self.set_value::<DiscreteState<T>, T>(ind, v)
+  }
+
+  fn set_output<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
+  where Self: StorageAccess<'a, Output<'a, T>, T> {
+    self.set_value::<Output<T>, T>(ind, v)
   }
 }
 
@@ -86,8 +114,12 @@ where for<'a> Self:
   StorageAccess<'a, Parameter<'a, f64>, f64> + 
   StorageAccess<'a, Parameter<'a, bool>, bool> +
   StorageAccess<'a, Parameter<'a, i64>, i64> +
+  StorageAccess<'a, DiscreteState<'a, f64>, f64> +
   StorageAccess<'a, DiscreteState<'a, bool>, bool> +
   StorageAccess<'a, DiscreteState<'a, i64>, i64> +
+  StorageAccess<'a, Output<'a, f64>, f64> + 
+  StorageAccess<'a, Output<'a, bool>, bool> +
+  StorageAccess<'a, Output<'a, i64>, i64> +
 {
 
 }
@@ -128,6 +160,25 @@ impl<'a, ST: SystemStorageFacade> SystemStorageBuilder<'a, ST> {
     let state = DiscreteState { id: next_index, access: self.storage };
     self.storage.set_discrete_state(state.id, initial).unwrap();
     state
+  }
+
+  pub fn create_output<T>(&mut self, initial: T) -> Output<'a, T>
+  where 
+  ST: StorageAccess<'a, Output<'a, T>, T> ,
+  StorageSize: NextIndex<Output<'a, T>>
+  {
+    let next_index = (&mut self.counters as &mut dyn NextIndex<Output<'a, T>>).next_index();
+    let output = Output { id: next_index, access: self.storage };
+    self.storage.set_output(output.id, initial).unwrap();
+    output
+  }
+
+  pub fn create_input<T: 'a>(&mut self) -> Input<'a, T>
+  where 
+  ST: StorageAccess<'a, Output<'a, T>, T> ,
+  StorageSize: NextIndex<Output<'a, T>>
+  {
+    Input { output_id: None, access: self.storage }
   }
 }
 

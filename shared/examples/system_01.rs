@@ -1,5 +1,4 @@
 extern crate flowmbed_shared;
-use std::borrow::Borrow;
 
 use const_default::ConstDefault;
 use flowmbed_shared::dynsys::{system_storage as ss};
@@ -103,7 +102,7 @@ impl<'a> LedSystem<'a> {
 #[allow(unused_variables)]
 fn main() -> anyhow::Result<()> {
   let size = ss::StorageSize {
-    r_param: 2, b_state: 1, i_state: 1,
+    r_param: 2, b_dstate: 1, i_dstate: 1,
     ..ss::StorageSize::DEFAULT
   }; 
   let storage = 

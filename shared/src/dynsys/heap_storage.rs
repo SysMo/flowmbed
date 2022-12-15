@@ -1,17 +1,20 @@
 use super::system_storage::{StorageSize, StorageAccess, SystemStorageFacade, SystemStorageBuilder, VariableCreator, DefaultSystemStrorage};
-use super::variables::{Parameter, DiscreteState, ContinuousState};
+use super::variables::{Parameter, DiscreteState, Output};
 use std::cell::RefCell;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct HeapSystemStorage {
   size: StorageSize,
   r_param: Vec<RefCell<f64>>,
   b_param: Vec<RefCell<bool>>,
   i_param: Vec<RefCell<i64>>,
-  // r_state: Vec<RefCell<f64>>,
-  // r_state_der: Vec<RefCell<f64>>,
-  b_state: Vec<RefCell<bool>>,
-  i_state: Vec<RefCell<i64>>,
+  r_dstate: Vec<RefCell<f64>>,
+  b_dstate: Vec<RefCell<bool>>,
+  i_dstate: Vec<RefCell<i64>>,
+  r_out: Vec<RefCell<f64>>,
+  b_out: Vec<RefCell<bool>>,
+  i_out: Vec<RefCell<i64>>,
 }
 
 impl HeapSystemStorage {
@@ -21,10 +24,14 @@ impl HeapSystemStorage {
       r_param: vec![RefCell::new(0.0); size.r_param],
       b_param: vec![RefCell::new(false); size.b_param],
       i_param: vec![RefCell::new(0); size.i_param],
-      // r_state: vec![RefCell::new(0.0); size.r_state],
-      // r_state_der: vec![RefCell::new(0.0); size.r_state],
-      b_state: vec![RefCell::new(false); size.b_state],
-      i_state: vec![RefCell::new(0); size.i_state],
+
+      r_dstate: vec![RefCell::new(0.0); size.r_dstate],
+      b_dstate: vec![RefCell::new(false); size.b_dstate],
+      i_dstate: vec![RefCell::new(0); size.i_dstate],
+
+      r_out: vec![RefCell::new(0.0); size.r_out],
+      b_out: vec![RefCell::new(false); size.b_out],
+      i_out: vec![RefCell::new(0); size.i_out],
     }
   }
 }
@@ -72,12 +79,19 @@ macro_rules! heap_storage_impl_all {
 }
 
 heap_storage_impl_all!(Parameter, f64, r_param);
-heap_storage_impl_all!(Parameter, i64, i_param);
 heap_storage_impl_all!(Parameter, bool, b_param);
+heap_storage_impl_all!(Parameter, i64, i_param);
+
+heap_storage_impl_all!(DiscreteState, f64, r_dstate);
+heap_storage_impl_all!(DiscreteState, bool, b_dstate);
+heap_storage_impl_all!(DiscreteState, i64, i_dstate);
+
+heap_storage_impl_all!(Output, f64, r_param);
+heap_storage_impl_all!(Output, bool, b_param);
+heap_storage_impl_all!(Output, i64, i_param);
+
 // heap_storage_impl_all!(ContinuousState<'a, f64>, f64, r_state);
 // heap_storage_impl_access!(ContinuousStateDerivative<'a, f64>, f64, r_state_der);
-heap_storage_impl_all!(DiscreteState, bool, b_state);
-heap_storage_impl_all!(DiscreteState, i64, i_state);
 
 // impl SystemStorageFacade for HeapSystemStorage {
 //   fn create_parameter<'a, T: Copy>(&'a self) -> Parameter<'a, T>
