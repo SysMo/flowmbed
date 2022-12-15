@@ -3,8 +3,9 @@ use std::borrow::Borrow;
 
 use const_default::ConstDefault;
 use flowmbed_shared::dynsys::{system_storage as ss};
-use flowmbed_shared::dynsys::system_storage::{SystemStorageBuilder, SystemStorageFacade, VariableCreator, HeapSystemStorage};
+use flowmbed_shared::dynsys::system_storage::{SystemStorageBuilder, SystemStorageFacade, VariableCreator};
 use flowmbed_shared::dynsys::variables::{Parameter, ContinuousState, DiscreteState};
+use flowmbed_shared::dynsys::heap_storage::HeapSystemStorage;
 use embedded_hal::digital;
 
 type ST = HeapSystemStorage;
@@ -106,7 +107,7 @@ fn main() -> anyhow::Result<()> {
     ..ss::StorageSize::DEFAULT
   }; 
   let storage = 
-    ss::HeapSystemStorage::new(size);
+    HeapSystemStorage::new(size);
 
   let mut system = LedSystem::new(&storage);
   let mut t: u64 = 0;
@@ -114,7 +115,7 @@ fn main() -> anyhow::Result<()> {
 
   while t <= 10 {
     system.step(t)?;
-    std::thread::sleep(std::time::Duration::from_secs(step));
+    std::thread::sleep(std::time::Duration::from_secs(step) / 5);
     t += step;
   }
 

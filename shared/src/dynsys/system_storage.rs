@@ -8,41 +8,37 @@ use super::variables::{Parameter, ContinuousState, ContinuousStateDerivative, Di
 pub struct StorageSize {
     pub r_param: usize,
     pub b_param: usize,
+    pub i_param: usize,
+
     pub r_state: usize,
     pub b_state: usize,
     pub i_state: usize,
-    pub r_out: usize,
-    pub b_out: usize,
+    
+    // pub r_out: usize,
+    // pub b_out: usize,
 }
 
 pub trait NextIndex<T> {
   fn next_index(&mut self) -> usize;
 }
 
-impl<'a> NextIndex<Parameter<'a, f64>> for StorageSize {
-  fn next_index(&mut self) -> usize {
-      let current = self.r_param;
-      self.r_param += 1;
-      current
-  }
+macro_rules! next_index_impl {
+  ($kind: ident, $tpe: ty, $field: ident) => {
+    impl<'a> NextIndex<$kind<'a, $tpe>> for StorageSize {
+      fn next_index(&mut self) -> usize {
+        let current = self.$field;
+        self.$field += 1;
+        current
+      }
+    }
+  };
 }
 
-impl<'a> NextIndex<DiscreteState<'a, bool>> for StorageSize {
-  fn next_index(&mut self) -> usize {
-      let current = self.b_state;
-      self.r_param += 1;
-      current
-  }
-}
-
-impl<'a> NextIndex<DiscreteState<'a, i64>> for StorageSize {
-  fn next_index(&mut self) -> usize {
-      let current = self.i_state;
-      self.i_state += 1;
-      current
-  }
-}
-
+next_index_impl!(Parameter, f64, r_param);
+next_index_impl!(Parameter, bool, b_param);
+next_index_impl!(Parameter, i64, i_param);
+next_index_impl!(DiscreteState, bool, b_state);
+next_index_impl!(DiscreteState, i64, i_state);
 
 #[allow(dead_code)]
 impl StorageSize {
@@ -84,40 +80,22 @@ pub trait SystemStorageFacade {
   }
 }
 
-#[derive(Debug)]
-pub struct HeapSystemStorage {
-  size: StorageSize,
-  r_param: Vec<RefCell<f64>>,
-  r_state: Vec<RefCell<f64>>,
-  r_state_der: Vec<RefCell<f64>>,
-  b_state: Vec<RefCell<bool>>,
-  i_state: Vec<RefCell<i64>>,
-}
 
-impl HeapSystemStorage {
-  pub fn new(size: StorageSize) -> HeapSystemStorage {
-    HeapSystemStorage {
-      size: size.clone(),
-      r_param: vec![RefCell::new(0.0); size.r_param],
-      r_state: vec![RefCell::new(0.0); size.r_state],
-      r_state_der: vec![RefCell::new(0.0); size.r_state],
-      b_state: vec![RefCell::new(false); size.b_state],
-      i_state: vec![RefCell::new(0); size.i_state],
-    }
-  }
-}
+pub trait DefaultSystemStrorage : SystemStorageFacade 
+where for<'a> Self: 
+  StorageAccess<'a, Parameter<'a, f64>, f64> + 
+  StorageAccess<'a, Parameter<'a, bool>, bool> +
+  StorageAccess<'a, Parameter<'a, i64>, i64> +
+  StorageAccess<'a, DiscreteState<'a, bool>, bool> +
+  StorageAccess<'a, DiscreteState<'a, i64>, i64> +
+{
 
-impl SystemStorageFacade for HeapSystemStorage {
-  fn size(&self) -> StorageSize {
-    self.size.clone()
-  }
 }
-
 
 pub struct SystemStorageBuilder<'a, ST> {
-  size: StorageSize,
-  storage: &'a ST,
-  counters: StorageSize
+  pub size: StorageSize,
+  pub storage: &'a ST,
+  pub counters: StorageSize
 }
 
 impl<'a, ST: SystemStorageFacade> SystemStorageBuilder<'a, ST> {
@@ -141,7 +119,7 @@ impl<'a, ST: SystemStorageFacade> SystemStorageBuilder<'a, ST> {
     param
   }
 
-  pub fn create_discrete_state<T>(&mut self, initial: T) -> DiscreteState<'a, T>  
+  pub fn create_discrete_state<T>(&mut self, initial: T) -> DiscreteState<'a, T>
   where 
   ST: StorageAccess<'a, DiscreteState<'a, T>, T> ,
   StorageSize: NextIndex<DiscreteState<'a, T>>
@@ -156,54 +134,5 @@ impl<'a, ST: SystemStorageFacade> SystemStorageBuilder<'a, ST> {
 pub trait VariableCreator<'a, K, T> {  
   fn create(&mut self) -> K;
 }
-
-macro_rules! heap_storage_impl_access {
-    ($kind: path, $tpe: ty, $field: ident) => {
-      impl<'a> StorageAccess<'a, $kind, $tpe> for HeapSystemStorage {
-        fn get(&'a self, ind: usize) -> &'a $tpe {
-          unsafe {&*self.$field[ind].as_ptr()}
-        }
-      
-        // TODO See if RefCell can be avoided and self can be made mutable here
-        fn set(&self, ind: usize, value: $tpe) -> anyhow::Result<()> {    
-          *self.$field[ind].borrow_mut() = value;
-          Ok(())
-        }
-      }
-      
-    };    
-}
-
-macro_rules! heap_storage_create_var {
-    ($kind: path, $tpe: ty, $field: ident) => {
-      impl<'a> VariableCreator<'a, $kind, $tpe> for SystemStorageBuilder<'a, HeapSystemStorage> {
-        fn create(&mut self) -> $kind {
-          let current_index = self.counters.$field;
-          self.counters.$field += 1;
-          $kind { id: current_index, access: self.storage }
-        }
-      }
-    };
-}
-
-macro_rules! heap_storage_impl_all {
-    ($kind: path, $tpe: ty, $field: ident) => {
-      heap_storage_impl_access!($kind, $tpe, $field);
-      heap_storage_create_var!($kind, $tpe, $field);
-    };
-}
-
-heap_storage_impl_all!(Parameter<'a, f64>, f64, r_param);
-heap_storage_impl_all!(ContinuousState<'a, f64>, f64, r_state);
-heap_storage_impl_access!(ContinuousStateDerivative<'a, f64>, f64, r_state_der);
-heap_storage_impl_all!(DiscreteState<'a, bool>, bool, b_state);
-heap_storage_impl_all!(DiscreteState<'a, i64>, i64, i_state);
-
-// impl SystemStorageFacade for HeapSystemStorage {
-//   fn create_parameter<'a, T: Copy>(&'a self) -> Parameter<'a, T>
-//   where Self: StorageAccess<'a, Parameter<'a, T>, T> {
-//     Parameter::<'a, T> { id: 0, access: self }
-//   }
-// }
 
 
