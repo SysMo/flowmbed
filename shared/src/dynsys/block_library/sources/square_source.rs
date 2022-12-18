@@ -13,13 +13,6 @@ pub struct SquareSource<'a> {
   pub output: Output<'a, bool>,
 }
 
-// pub struct StateUpdate {
-//   current: Option<bool>
-// }
-// pub struct Outputs {
-
-// }
-
 impl<'a> SquareSource<'a> {
   pub fn new<ST: DefaultSystemStrorage>(
     builder: &mut SystemStorageBuilder<'a, ST>
@@ -34,8 +27,10 @@ impl<'a> SquareSource<'a> {
     }
   }
 
-  pub fn init(&mut self) {
-    self.current.update(*self.initial);
+  pub fn init(&mut self) -> anyhow::Result<()> {
+    self.current.initialize(*self.initial);
+    self.output.initialize(*self.initial);
+    Ok(())
   }
 
   pub fn compute(&self, ssi: &SystemStateInfo) -> anyhow::Result<()> {
@@ -43,16 +38,14 @@ impl<'a> SquareSource<'a> {
     let tau_off = *self.period - tau_on;
     // Update state
     if *self.current && (ssi.t - *self.last_change >= tau_on) {
-      println!("Event at t = {}", ssi.t);
-      self.current.update(false);
-      self.last_change.update(ssi.t);
+      self.current.update(false, ssi);
+      self.last_change.update(ssi.t, ssi);
     } else if !*self.current && (ssi.t - *self.last_change >= tau_off) {
-      println!("Event at t = {}", ssi.t);
-      self.current.update(true);
-      self.last_change.update(ssi.t);
+      self.current.update(true, ssi);
+      self.last_change.update(ssi.t, ssi);
     }
     // Update outputs
-    self.output.update(*self.current);
+    self.output.update(*self.current, ssi);
 
     Ok(())
   }
@@ -60,15 +53,8 @@ impl<'a> SquareSource<'a> {
 }
 
 impl<'a> Block for SquareSource<'a> {
-    const size: StorageSize = StorageSize {
+    const BLOCK_SIZE: StorageSize = StorageSize {
       r_param: 2, b_param: 1, b_dstate: 1, r_dstate: 1, b_out: 1,
       ..StorageSize::DEFAULT
     };
 }
-
-// period: Parameter<'a, f64>,
-// duty: Parameter<'a, f64>,
-// initial: Parameter<'a, bool>,
-// current: DiscreteState<'a, bool>,
-// last_change: DiscreteState<'a, f64>,
-// output: Output<'a, bool>,

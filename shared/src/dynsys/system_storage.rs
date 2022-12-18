@@ -1,7 +1,6 @@
 use const_default::ConstDefault;
 use const_default_derive::ConstDefault;
 use super::variables::{Parameter, DiscreteState, Output, Input};
-use std::ops::Add;
 
 #[allow(dead_code)]
 #[derive(Default, Debug, ConstDefault, PartialEq, Eq, Clone)]
@@ -36,6 +35,7 @@ impl StorageSize {
     }
   }
 }
+
 
 pub trait NextIndex<T> {
   fn next_index(&mut self) -> usize;

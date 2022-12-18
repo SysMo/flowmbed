@@ -1,37 +1,36 @@
 use super::system_storage::{StorageSize, StorageAccess, SystemStorageFacade, SystemStorageBuilder, VariableCreator, DefaultSystemStrorage};
 use super::variables::{Parameter, DiscreteState, Output};
-use std::cell::RefCell;
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct HeapSystemStorage {
   size: StorageSize,
-  r_param: Vec<RefCell<f64>>,
-  b_param: Vec<RefCell<bool>>,
-  i_param: Vec<RefCell<i64>>,
-  r_dstate: Vec<RefCell<f64>>,
-  b_dstate: Vec<RefCell<bool>>,
-  i_dstate: Vec<RefCell<i64>>,
-  r_out: Vec<RefCell<f64>>,
-  b_out: Vec<RefCell<bool>>,
-  i_out: Vec<RefCell<i64>>,
+  r_param: Vec<f64>,
+  b_param: Vec<bool>,
+  i_param: Vec<i64>,
+  r_dstate: Vec<f64>,
+  b_dstate: Vec<bool>,
+  i_dstate: Vec<i64>,
+  r_out: Vec<f64>,
+  b_out: Vec<bool>,
+  i_out: Vec<i64>,
 }
 
 impl HeapSystemStorage {
   pub fn new(size: StorageSize) -> HeapSystemStorage {
     HeapSystemStorage {
       size: size.clone(),
-      r_param: vec![RefCell::new(0.0); size.r_param],
-      b_param: vec![RefCell::new(false); size.b_param],
-      i_param: vec![RefCell::new(0); size.i_param],
+      r_param: vec![0.0; size.r_param],
+      b_param: vec![false; size.b_param],
+      i_param: vec![0; size.i_param],
 
-      r_dstate: vec![RefCell::new(0.0); size.r_dstate],
-      b_dstate: vec![RefCell::new(false); size.b_dstate],
-      i_dstate: vec![RefCell::new(0); size.i_dstate],
+      r_dstate: vec![0.0; size.r_dstate],
+      b_dstate: vec![false; size.b_dstate],
+      i_dstate: vec![0; size.i_dstate],
 
-      r_out: vec![RefCell::new(0.0); size.r_out],
-      b_out: vec![RefCell::new(false); size.b_out],
-      i_out: vec![RefCell::new(0); size.i_out],
+      r_out: vec![0.0; size.r_out],
+      b_out: vec![false; size.b_out],
+      i_out: vec![0; size.i_out],
     }
   }
 }
@@ -46,12 +45,16 @@ macro_rules! heap_storage_impl_access {
     ($kind: ident, $tpe: ty, $field: ident) => {
       impl<'a> StorageAccess<'a, $kind<'a, $tpe>, $tpe> for HeapSystemStorage {
         fn get(&'a self, ind: usize) -> &'a $tpe {
-          unsafe {&*self.$field[ind].as_ptr()}
+          &self.$field[ind]
+          // unsafe {&*self.$field[ind].as_ptr()}
         }
       
         // TODO See if RefCell can be avoided and self can be made mutable here
-        fn set(&self, ind: usize, value: $tpe) -> anyhow::Result<()> {    
-          *self.$field[ind].borrow_mut() = value;
+        fn set(&self, ind: usize, value: $tpe) -> anyhow::Result<()> {
+          let mut_self: *const Self = self;
+          let mut_self2: *mut Self = mut_self as *mut Self;
+          let mut_self3: &mut Self = unsafe {&mut *mut_self2};
+          mut_self3.$field[ind] = value;
           Ok(())
         }
       }

@@ -18,10 +18,11 @@ pio = ["esp-idf-sys/pio"]
 [dependencies]
 esp-idf-sys = { version = "0.31.11", features = ["binstart"] }
 embedded-hal = "=1.0.0-alpha.9"
-embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
+# embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
 esp-idf-hal = "0.39.3"
 esp-idf-svc = { version = "0.43.4", features = ["std", "experimental"]}
 embedded-svc = "0.23.1"
+flowmbed_shared = {path = "../shared/", features = ["esp32"]}
 
 anyhow = {version = "1", features = ["backtrace"]}
 # toml-cfg = "0.1"

@@ -1,5 +1,6 @@
-use super::system_storage::StorageAccess;
+use super::{system_storage::StorageAccess, SystemStateInfo};
 use std::ops::Deref;
+use std::fmt::Display;
 
 /** Parameters */
 pub struct Parameter<'a, T> {
@@ -29,13 +30,18 @@ pub struct DiscreteState<'a, T> {
   pub access: &'a dyn StorageAccess<'a, DiscreteState<'a, T>, T>
 }
 
-impl<'a, T> DiscreteState<'a, T> {
-  pub fn update(&self, value: T) {
+impl<'a, T: Display> DiscreteState<'a, T> {
+  pub fn initialize(&self, value: T) {
+    self.access.set(self.id, value).unwrap();
+  }
+
+  pub fn update(&self, value: T, _ssi: &SystemStateInfo) {
+    // println!("Updated discrete state {} at t = {:.3} from {} to {}", self.id, ssi.t, self.access.get(self.id), value);
     self.access.set(self.id, value).unwrap();
   }
 }
 
-impl<'a, T: Copy> Deref for DiscreteState<'a, T> {
+impl<'a, T: Copy + Display> Deref for DiscreteState<'a, T> {
   type Target = T;
   fn deref(&self) -> &Self::Target {
       self.access.get(self.id)
@@ -48,7 +54,10 @@ pub struct Output<'a, T> {
 }
 
 impl<'a, T> Output<'a, T> {
-  pub fn update(&self, value: T) {
+  pub fn initialize(&self, value: T) {
+    self.access.set(self.id, value).unwrap();
+  }
+  pub fn update(&self, value: T, _ssi: &SystemStateInfo) {
     self.access.set(self.id, value).unwrap();
   }
 }

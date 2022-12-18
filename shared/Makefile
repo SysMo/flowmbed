@@ -9,8 +9,8 @@ build/pre: terminal/clear
 examples/messages:
 	cargo run --example messages
 
-examples/system_01: build/pre	
-	cargo run --example system_01
+examples/01_blink: build/pre	
+	$(SETENV) && cargo run --example 01_blink
 
-examples/system_02: build/pre
-	$(SETENV) && cargo run --example system_02
+# examples/system_02: build/pre
+# 	$(SETENV) && cargo run --example system_02

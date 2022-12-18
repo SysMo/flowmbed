@@ -1,50 +1,59 @@
 use crate::dynsys::{SystemStateInfo, StorageSize};
 use crate::dynsys::system_storage::{SystemStorageBuilder, DefaultSystemStrorage};
 use crate::dynsys::variables::{DiscreteState, Input};
-use embedded_hal::digital::OutputPin;
-use std::cell::RefMut;
 use crate::dynsys::Block;
 use const_default::ConstDefault;
-
-type DO<'a> = RefMut<'a, Box<dyn OutputPin<Error = anyhow::Error>>>;
+use crate::dynsys::block_library::hal;
 
 pub struct DigitalOutput<'a> {
   pub input: Input<'a, bool>,
   pub current: DiscreteState<'a, bool>,
-  // Periphery  
-  pub digital_output: DO<'a>
+  // Hardware Output
+  out: hal::IOutputPin<'a>,
 }
 
-impl<'a> DigitalOutput<'a> {
+impl<'a> DigitalOutput<'a>
+{
   pub fn new<ST: DefaultSystemStrorage>(
-    builder: &mut SystemStorageBuilder<'a, ST>, 
-    digital_output: DO<'a>
+    builder: &mut SystemStorageBuilder<'a, ST>,
+    out: hal::IOutputPin<'a>,
   ) -> DigitalOutput<'a> {
     DigitalOutput {
       input: builder.create_input(), 
       current: builder.create_discrete_state(false),
-      digital_output: digital_output
+      out: out
     }
   }
 
-  pub fn init(&mut self) {
+  pub fn init(&mut self) -> anyhow::Result<()> 
+  {
+    self.current.initialize(*self.input);
+    self.apply(*self.input)?;
+    Ok(())
   }
 
-  pub fn compute(&mut self, _ssi: &SystemStateInfo) -> anyhow::Result<()> {
+  pub fn compute(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()> 
+  {
     if *self.input != *self.current {
-      self.current.update(*self.input);
-      if *self.input {
-        self.digital_output.set_high()?;
-      } else {
-        self.digital_output.set_low()?;
-      }
+      self.current.update(*self.input, ssi);
+      self.apply(*self.input)?;
     }
     Ok(())
   }
+
+  fn apply(&mut self, value: bool) -> anyhow::Result<()> {
+    if value {
+      self.out.set_high()?;
+    } else {
+      self.out.set_low()?;
+    }
+    Ok(())
+  }
+
 }
 
 impl<'a> Block for DigitalOutput<'a> {
-  const size: StorageSize = StorageSize {
+  const BLOCK_SIZE: StorageSize = StorageSize {
     b_dstate: 1,
     ..StorageSize::DEFAULT
   };
