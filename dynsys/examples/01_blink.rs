@@ -1,13 +1,13 @@
-extern crate flowmbed_shared;
+extern crate flowmbed_dynsys;
 
-use flowmbed_shared::cfg_device;
-use flowmbed_shared::dynsys::{
+use flowmbed_dynsys::cfg_device;
+use flowmbed_dynsys::core::{
   Block,
   StorageSize, DefaultSystemStrorage, HeapSystemStorage, SystemStorageBuilder, 
   SystemStateInfo, DynamicalSystem,  
   FixedStepRunner, FixedStepRunSettings, SystemRunner
 };
-use flowmbed_shared::dynsys::block_library::{
+use flowmbed_dynsys::block_library::{
   hal::{IOutputPin, esp32_hal},
   sources::SquareSource,
   hardware_sinks::{DigitalOutput},
@@ -55,7 +55,7 @@ impl<'a> LedSystemBlocks<'a> {
     };
 
     storage.set_parameter::<f64>(blocks.source.duty.id, 0.2);
-    storage.set_parameter::<f64>(blocks.delay.delay, 0.15);
+    storage.set_parameter::<f64>(blocks.delay.delay.id, 0.15);
 
     blocks.led1.input.connect(&blocks.source.output).unwrap();
     blocks.delay.input.connect(&blocks.source.output).unwrap();
@@ -117,7 +117,7 @@ fn main() -> anyhow::Result<()> {
   let mut peripherals = LedSystemPeripherals::new();
   let mut system = LedSystem::new(&storage, &mut peripherals);
   let run_settings = FixedStepRunSettings {
-    t_step: 0.01, speedup: 10.0, t_end: Some(10.0),
+    t_step: 0.01, speedup: 1.0, t_end: None,
     ..Default::default()
   };
   let mut runner = FixedStepRunner::new(&mut system, run_settings);

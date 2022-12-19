@@ -1,16 +1,20 @@
-use crate::dynsys::{SystemStateInfo, StorageSize};
-use crate::dynsys::system_storage::{SystemStorageBuilder, DefaultSystemStrorage};
-use crate::dynsys::variables::{Parameter, DiscreteState, Output};
-use crate::dynsys::Block;
+use crate::core::{
+  Block,
+  SystemStateInfo, StorageSize, DefaultSystemStrorage,
+  SystemStorageBuilder,
+  Parameter, DiscreteState, Output,
+};
 use const_default::ConstDefault;
 
 pub struct SquareSource<'a> {
-  period: Parameter<'a, f64>,
-  duty: Parameter<'a, f64>,
-  initial: Parameter<'a, bool>,
+  pub period: Parameter<'a, f64>,
+  pub duty: Parameter<'a, f64>,
+  pub initial: Parameter<'a, bool>,
+
+  pub output: Output<'a, bool>,
+
   current: DiscreteState<'a, bool>,
   last_change: DiscreteState<'a, f64>,
-  pub output: Output<'a, bool>,
 }
 
 impl<'a> SquareSource<'a> {

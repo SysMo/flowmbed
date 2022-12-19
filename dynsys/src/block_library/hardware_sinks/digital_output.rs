@@ -1,9 +1,13 @@
-use crate::dynsys::{SystemStateInfo, StorageSize};
-use crate::dynsys::system_storage::{SystemStorageBuilder, DefaultSystemStrorage};
-use crate::dynsys::variables::{DiscreteState, Input};
-use crate::dynsys::Block;
+use crate::core::{
+  Block,
+  SystemStateInfo, StorageSize, DefaultSystemStrorage,
+  SystemStorageBuilder,
+  Parameter, DiscreteState, Output, Input,
+};
+
+use super::super::hal;
+
 use const_default::ConstDefault;
-use crate::dynsys::block_library::hal;
 
 pub struct DigitalOutput<'a> {
   pub input: Input<'a, bool>,

@@ -1,17 +1,21 @@
-use crate::dynsys::{SystemStateInfo, StorageSize};
-use crate::dynsys::system_storage::{SystemStorageBuilder, DefaultSystemStrorage};
-use crate::dynsys::variables::{Parameter, DiscreteState, Output, Input};
-use crate::dynsys::Block;
+use crate::core::{
+  Block,
+  SystemStateInfo, StorageSize, DefaultSystemStrorage,
+  SystemStorageBuilder,
+  Parameter, DiscreteState, Output, Input,
+};
 use const_default::ConstDefault;
 
 pub struct SimpleDelay<'a> {
-  delay: Parameter<'a, f64>,
-  initial_output: Parameter<'a, bool>,
+  pub delay: Parameter<'a, f64>,
+  pub initial_output: Parameter<'a, bool>,
+  
+  pub input: Input<'a, bool>,
+  pub output: Output<'a, bool>,
+
   future: DiscreteState<'a, bool>,
   current: DiscreteState<'a, bool>,
   last_input_change: DiscreteState<'a, f64>,
-  pub input: Input<'a, bool>,
-  pub output: Output<'a, bool>,
 }
 
 impl<'a> SimpleDelay<'a> {
