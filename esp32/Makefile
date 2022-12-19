@@ -1,5 +1,5 @@
-SERIAL=/dev/ttyACM0
-# SERIAL=/dev/ttyUSB0
+# SERIAL=/dev/ttyACM0
+SERIAL=/dev/ttyUSB0
 include credentials.vars
 EXAMPLE=01_blink
 

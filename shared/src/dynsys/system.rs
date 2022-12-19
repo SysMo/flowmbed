@@ -3,24 +3,9 @@ pub struct SystemStateInfo {
   // pub event: bool
 }
 
-// pub struct SystemControl<'a> {
-//   pub peripherals: &'a dyn SystemPeripherals,
-// }
 
-// pub struct PeripheralType {}
+pub trait DynamicalSystem {
+  fn init(&mut self) -> anyhow::Result<()>;
+  fn step(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()>;
+}
 
-// pub trait SystemPeripherals {
-//   fn peripheral(&self, ind: usize) -> anyhow::Result<PeripheralType>;
-// }
-
-
-// pub trait SystemControl {
-//   type PeripheralType;
-//   fn peripheral(&self, ind: usize) -> anyhow::Result<Self::PeripheralType>;
-// }
-
-// pub struct PeripheralType {}
-
-// pub trait SystemPeripherals {
-//   fn peripheral(&self, ind: usize) -> anyhow::Result<PeripheralType>;
-// }

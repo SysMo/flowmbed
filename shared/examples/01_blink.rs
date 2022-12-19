@@ -1,18 +1,21 @@
 extern crate flowmbed_shared;
 
-use flowmbed_shared::dynsys::system::{SystemStateInfo};
-use flowmbed_shared::dynsys::{StorageSize, DefaultSystemStrorage, SystemStorageBuilder};
-use flowmbed_shared::dynsys::HeapSystemStorage;
-use flowmbed_shared::dynsys::Block;
+use flowmbed_shared::cfg_device;
+use flowmbed_shared::dynsys::{
+  Block,
+  StorageSize, DefaultSystemStrorage, HeapSystemStorage, SystemStorageBuilder, 
+  SystemStateInfo, DynamicalSystem,  
+  FixedStepRunner, FixedStepRunSettings, SystemRunner
+};
 use flowmbed_shared::dynsys::block_library::{
+  hal::{IOutputPin, esp32_hal},
   sources::SquareSource,
   hardware_sinks::{DigitalOutput},
   discrete::SimpleDelay,
 };
-use flowmbed_shared::dynsys::block_library::hal::IOutputPin;
 
-use esp32_virtual_hal::peripherals::Peripherals;
-use esp32_virtual_hal::gpio::{PinDriver, Output, Gpio2, Gpio4};
+use esp32_hal::peripherals::Peripherals;
+use esp32_hal::gpio::{PinDriver, Output, Gpio2, Gpio4};
 
 struct LedSystemPeripherals<'a> {
   led1: PinDriver<'a, Gpio2, Output>,
@@ -55,12 +58,9 @@ impl<'a> LedSystemBlocks<'a> {
     blocks.delay.input.connect(&blocks.source.output).unwrap();
     blocks.led2.input.connect(&blocks.delay.output).unwrap();
 
-
     blocks
   }
-
 }
-
 
 
 struct LedSystem<'a> {
@@ -76,8 +76,10 @@ impl<'a> LedSystem<'a> {
     }
 
   }
+}
 
-  pub fn init(&mut self) -> anyhow::Result<()> {
+impl<'a> DynamicalSystem for LedSystem<'a> {
+  fn init(&mut self) -> anyhow::Result<()> {
     let blocks = &mut self.blocks;
 
     blocks.source.init()?;
@@ -87,7 +89,7 @@ impl<'a> LedSystem<'a> {
     Ok(())
   }
 
-  pub fn step(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()> {
+  fn step(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()> {
     let blocks = &mut self.blocks;
 
     blocks.source.compute(ssi)?;
@@ -96,14 +98,11 @@ impl<'a> LedSystem<'a> {
     blocks.led2.compute(ssi)?;
     Ok(())
   }
-
 }
 
 fn main() -> anyhow::Result<()> {
-
-  // Bind the log crate to the simple logger facilities
-  simple_logger::SimpleLogger::new().env().init().unwrap();
-
+  
+  cfg_device::config_logger();
 
   const SYSTEM_SIZE : StorageSize = 
     SquareSource::BLOCK_SIZE
@@ -111,31 +110,17 @@ fn main() -> anyhow::Result<()> {
     .add(SimpleDelay::BLOCK_SIZE)
     .add(DigitalOutput::BLOCK_SIZE)
     ;
-  println!("{:?}", SYSTEM_SIZE);
   let storage = HeapSystemStorage::new(SYSTEM_SIZE);
   let mut peripherals = LedSystemPeripherals::new();
   let mut system = LedSystem::new(&storage, &mut peripherals);
+  let run_settings = FixedStepRunSettings {
+    t_step: 0.01, speedup: 10.0, t_end: Some(10.0),
+    ..Default::default()
+  };
+  let mut runner = FixedStepRunner::new(&mut system, run_settings);
 
-  let mut t: f64 = 0.0;
-  let step = 0.01;
-  // let t_print = 0.1;
-  // let mut t_last_print = 0.0;
-
-  system.init()?;
-  // println!("t = {:.3}", t);
-  // println!("{:?}", storage);
-
-  while t <= 2.0 {
-    let ssi = SystemStateInfo {t: t};
-    system.step(&ssi)?;
-    std::thread::sleep(std::time::Duration::from_millis((step * 1000.0) as u64) / 5);
-    // if t - t_last_print >= t_print {
-    //   println!("t = {:.3}", t);
-    //   println!("{:?}", storage);
-    //   t_last_print = t;
-    // }
-    t += step;
-  }
+  runner.init()?;
+  runner.run()?;
 
   Ok(())
 }

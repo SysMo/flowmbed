@@ -58,11 +58,11 @@ impl<'d, T: Pin, MODE> digital::ErrorType for PinDriver<'d, T, MODE> {
 impl<'d, T: Pin, MODE> digital::OutputPin for PinDriver<'d, T, MODE> 
 where MODE : OutputMode {
   fn set_high(&mut self) -> Result<(), Self::Error> {
-    info!("LED {} is on", self.pin.pin());
+    info!("Pin {} set high", self.pin.pin());
     Ok(())
   }
   fn set_low(&mut self) -> Result<(), Self::Error> {
-    info!("LED {} is off", self.pin.pin());
+    info!("Pin {} set low", self.pin.pin());
     Ok(())
   }
 }

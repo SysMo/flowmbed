@@ -1,4 +1,5 @@
 
+#[allow(unused_macros)]
 macro_rules! cascade {
   ($(
       if #[cfg($($meta:meta),*)] { $($it:item)* }
@@ -13,6 +14,7 @@ macro_rules! cascade {
   }
 }
 
+#[allow(unused_macros)]
 macro_rules! __items {
   (($($not:meta,)*) ; ) => {};
   (($($not:meta,)*) ; ( ($($m:meta),*) ($($it:item)*) ), $($rest:tt)*) => {
@@ -21,11 +23,13 @@ macro_rules! __items {
   }
 }
 
+#[allow(unused_macros)]
 macro_rules! __apply {
   ($m:meta, $($it:item)*) => {
       $(#[$m] $it)*
   }
 }
 
+#[allow(unused_imports)]
 pub(crate) use {cascade, __items, __apply}; 
 
