@@ -1,5 +1,5 @@
 [package]
-name = "reform-esp"
+name = "flowmbed_esp32"
 version = "0.1.0"
 authors = ["Atanas Pavlov <nasko.js@gmail.com>"]
 edition = "2021"

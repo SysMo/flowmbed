@@ -95,13 +95,20 @@ macro_rules! pin {
 }
 
 
-
 pin!(Gpio2:2, Output);
 pin!(Gpio4:4, Output);
+pin!(Gpio5:5, Output);
+pin!(Gpio15:15, Output);
+pin!(Gpio16:16, Output);
+pin!(Gpio17:17, Output);
 
 pub struct Pins {
   pub gpio2: Gpio2,
   pub gpio4: Gpio4,
+  pub gpio5: Gpio5,
+  pub gpio15: Gpio15,
+  pub gpio16: Gpio16,
+  pub gpio17: Gpio17,
 }
 
 impl Pins {
@@ -109,6 +116,10 @@ impl Pins {
     Pins {
       gpio2: Gpio2::new(),
       gpio4: Gpio4::new(),
+      gpio5: Gpio5::new(),
+      gpio15: Gpio15::new(),
+      gpio16: Gpio16::new(),
+      gpio17: Gpio17::new(),
     }
   }
 }

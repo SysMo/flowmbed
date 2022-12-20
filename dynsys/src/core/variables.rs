@@ -5,14 +5,22 @@ use std::fmt::Display;
 /** Parameters */
 pub struct Parameter<'a, T> {
   pub id: usize,
-  pub access: &'a dyn StorageAccess<'a, Parameter<'a, T>, T>
+  pub access: &'a dyn StorageAccess<'a, Parameter<'a, T>, T>  
 }
+
+impl<'a, T> Parameter<'a, T> {
+  pub fn reset(&self, value: T) {
+    self.access.set(self.id, value).unwrap();
+  }  
+}
+
 
 impl<'a, T: Copy> Deref for Parameter<'a, T> {
   type Target = T;
   fn deref(&self) -> &Self::Target {
       self.access.get(self.id)
   }
+
 }
 
 pub struct ContinuousState<'a, T> {

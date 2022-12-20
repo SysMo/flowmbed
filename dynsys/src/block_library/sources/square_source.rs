@@ -5,6 +5,7 @@ use crate::core::{
   Parameter, DiscreteState, Output,
 };
 use const_default::ConstDefault;
+use crate::util::block_macros::*;
 
 pub struct SquareSource<'a> {
   pub period: Parameter<'a, f64>,
@@ -17,6 +18,12 @@ pub struct SquareSource<'a> {
   last_change: DiscreteState<'a, f64>,
 }
 
+block_builder!(SquareSource, 
+  [period, Parameter, f64]
+  [duty, Parameter, f64]
+  [initial, Parameter, bool]
+);
+
 impl<'a> SquareSource<'a> {
   pub fn new<ST: DefaultSystemStrorage>(
     builder: &mut SystemStorageBuilder<'a, ST>
@@ -24,11 +31,17 @@ impl<'a> SquareSource<'a> {
     SquareSource { 
       period: builder.create_param(1.0),
       duty: builder.create_param(0.5),
-      initial: builder.create_param(true),
+      initial: builder.create_param(false),
       current: builder.create_discrete_state(false),
       last_change: builder.create_discrete_state(0.0),
       output: builder.create_output(false),
     }
+  }
+
+  pub fn builder<ST: DefaultSystemStrorage>(
+    builder: &mut SystemStorageBuilder<'a, ST>
+  ) -> Builder<'a> {
+    Builder { component: Self::new(builder) }
   }
 
   pub fn init(&mut self) -> anyhow::Result<()> {

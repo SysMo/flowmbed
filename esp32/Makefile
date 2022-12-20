@@ -28,7 +28,7 @@ example/build: build/pre
 	cargo espflash save-image --example $(EXAMPLE) --target xtensa-esp32-espidf ESP32 program.bin
 
 example/flash: build/pre
-	cargo espflash --example $(EXAMPLE) --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+	cargo espflash --example $(EXAMPLE) --release --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 
 monitor:
