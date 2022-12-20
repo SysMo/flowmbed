@@ -1,16 +1,77 @@
 ---
+
+device: esp32
+
 peripherals:
-  - id: led_out
-    conf: 
+  - id: led1
+    conf:
       !DigitalOutput
         pin: 5
+  - id: led2
+    conf:
+      !DigitalOutput
+        pin: 2
+  - id: led3
+    conf:
+      !DigitalOutput
+        pin: 4
+
+circuits:
+  - id: LedSystemBlocks
+    blocks:
+      - id: source
+        kind: SquareSource
+        parameters:
+          period: 0.1
+      - id: trigger1
+        kind: CountingTrigger
+        parameters:
+          pulses_up: 1
+          pulses_down: 6
+          offset: 0
+
+      - id: trigger2
+        kind: CountingTrigger
+        parameters:
+          pulses_up: 2
+          pulses_down: 5
+          offset: 0
+
+      - id: trigger3
+        kind: CountingTrigger
+        parameters:
+          pulses_up: 3
+          pulses_down: 4
+          offset: 0
+
+      - id: led1
+        kind: DigitalOutput
+        peripherals:
+          - led1
+
+      - id: led2
+        kind: DigitalOutput
+        peripherals:
+          - led2
+
+      - id: led3
+        kind: DigitalOutput
+        peripherals:
+          - led3
+
+    connections:
+      - trigger1.input: source.output
+      - led1.input: trigger1.output
+      - trigger2.input: source.output
+      - led2.input: trigger2.output
+      - trigger3.input: source.output
+      - led3.input: trigger3.output
 
 systems:
   - id: main
-    event_loop:
-      !FixedIntervalLoop
-        interval: 10
-        unit: ms
-    sources: 
-      - led_out
+    runner:
+      !FixedStepRunner
+        t_step: 0.01
+        speedup: 1.0
+        circuit: LedSystemBlocks
 

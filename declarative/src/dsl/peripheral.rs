@@ -22,3 +22,6 @@ pub struct DigitalOutputConfig {
 pub struct DigitalInputConfig {
   pin: u32
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PeripheralRef(String);
