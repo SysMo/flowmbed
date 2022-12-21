@@ -30,21 +30,21 @@ circuits:
         parameters:
           pulses_up: 1
           pulses_down: 6
-          offset: 0
+          initial_count: 0
 
       - id: trigger2
         kind: discrete::CountingTrigger
         parameters:
           pulses_up: 2
           pulses_down: 5
-          offset: 0
+          initial_count: 0
 
       - id: trigger3
         kind: discrete::CountingTrigger
         parameters:
           pulses_up: 3
           pulses_down: 4
-          offset: 0
+          initial_count: 0
 
       - id: led1
         kind: hardware_sinks::DigitalOutput

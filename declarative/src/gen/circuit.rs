@@ -1,5 +1,5 @@
 use crate::dsl::circuit::CircuitConfig;
-use crate::dsl::block::{BlockInstance, BlockInput, BlockOutput};
+use crate::dsl::block::{BlockInstance, BlockInput, BlockOutput, Value};
 use super::traits::CodeGenerator;
 use genco::prelude::{rust, quote};
 
@@ -25,27 +25,37 @@ impl<'a> CircuitGenerator<'a> {
   fn create_block(&self, block: &BlockInstance) -> rust::Tokens {
     
     let peripherals_name = "peripherals";
-
-    // let create_fn = if block.parameters.is_empty() {
-    //   quote!(new())
-    // } else { 
-    //   quote!()
-    //  };
     
-    let mut create_args  = vec![quote!(&mut builder)];
+    let mut args  = vec![quote!(&mut builder)];
     block.peripherals.iter().for_each(|periph_ref|
-      create_args.push(quote!(&mut $(peripherals_name).$(&periph_ref.0)))
+      args.push(quote!(&mut $(peripherals_name).$(&periph_ref.0)))
     );
-    let args = quote!($(for arg in create_args join (, ) => $arg));
 
-    quote!($(&block.id): $(&self.block_library)::$(&block.kind)::$(self.create_fn(args, None)))
+    let modifiers = block.parameters.iter().map(
+      |(key, value)| {
+        let value_str = match &value {
+          &Value::Bool(x) => x.to_string(),
+          &Value::Int(x) => x.to_string(),
+          &Value::Float(x) => x.to_string(),
+          &Value::String(x) => x.to_string(),
+        };
+        quote!(.$(key)($(value_str)))
+      }
+    ).collect::<Vec<_>>();
+
+    quote!(
+      $(&block.id): $(&self.block_library)::$(&block.kind)
+        ::$(self.create_fn(args, modifiers)),
+      )
   }
 
-  fn create_fn(&self, args: rust::Tokens, modifiers: Option<rust::Tokens>) -> rust::Tokens {
-    if modifiers.is_none() {
-      quote!(new($(args)))
-    } else { 
-      quote!(builder($(args))$(modifiers).into())
+  fn create_fn(&self, args: Vec<rust::Tokens>, modifiers: Vec<rust::Tokens>) -> rust::Tokens {
+    let arg_tokens = quote!($(for arg in args join (, ) => $arg));
+    if modifiers.is_empty() {
+      quote!(new($(arg_tokens)))
+    } else {
+      let modifier_tokens = quote!($(for modifier in modifiers join () => $modifier));
+      quote!(builder($(arg_tokens))$(modifier_tokens).into())
      }
   }
 }
@@ -70,8 +80,8 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
           let mut builder = $(&self.dynsys_core)::SystemStorageBuilder::new(storage);
 
           let mut circuit = $(circuit_name) {
-            $(for block in &self.circuit.blocks =>
-              $(self.create_block(&block)),$['\r']
+            $(for block in &self.circuit.blocks join () =>
+              $(self.create_block(&block))
             )    
           };
 
