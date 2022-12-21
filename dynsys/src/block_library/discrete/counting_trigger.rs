@@ -5,7 +5,6 @@ use crate::core::{
   Parameter, DiscreteState, Output, Input,
 };
 use const_default::ConstDefault;
-use crate::util::debug::materialize_vars;
 use crate::util::block_macros::*;
 
 pub struct CountingTrigger<'a> {
@@ -64,10 +63,6 @@ impl <'a> CountingTrigger<'a> {
   }
 
   pub fn compute(&self, ssi: &SystemStateInfo) -> anyhow::Result<()> {
-    materialize_vars!(self,
-      pulses_up, pulses_down,
-      count_on_rising, input, last_input, counter, current
-    );
 
     if *self.input != *self.last_input {
       if (*self.input && *self.count_on_rising) ||  (!*self.input && !*self.count_on_rising) {

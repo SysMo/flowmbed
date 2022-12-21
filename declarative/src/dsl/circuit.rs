@@ -4,13 +4,13 @@ use super::block::{BlockInstance, BlockInput, BlockOutput};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockConnection {
-  to: BlockInput,
-  from: BlockOutput,
+  pub to: BlockInput,
+  pub from: BlockOutput,
 }
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Circuit {
-  id: String,
-  blocks: Vec<BlockInstance>
+pub struct CircuitConfig {
+  pub id: String,
+  pub blocks: Vec<BlockInstance>
 }

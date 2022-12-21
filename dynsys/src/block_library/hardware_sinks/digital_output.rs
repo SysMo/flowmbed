@@ -2,7 +2,7 @@ use crate::core::{
   Block,
   SystemStateInfo, StorageSize, DefaultSystemStrorage,
   SystemStorageBuilder,
-  Parameter, DiscreteState, Output, Input,
+  DiscreteState, Input,
 };
 
 use super::super::hal;

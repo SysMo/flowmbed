@@ -1,9 +1,22 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct DeviceConfig {
+  pub id: String,
+  pub kind: DeviceKind,
+  pub peripherals: Vec<PeripheralConfig>,
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub enum DeviceKind {
+    esp32
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PeripheralConfig {
-  id: String,
-  conf: PeripheralConfigEnum
+  pub id: String,
+  pub conf: PeripheralConfigEnum
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -15,13 +28,13 @@ pub enum PeripheralConfigEnum {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DigitalOutputConfig {
-  pin: u32
+  pub pin: u32
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DigitalInputConfig {
-  pin: u32
+  pub pin: u32
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct PeripheralRef(String);
+pub struct PeripheralRef(pub String);

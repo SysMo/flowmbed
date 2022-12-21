@@ -1,6 +1,5 @@
 use genco::prelude::rust;
-use crate::dsl::board::BoardConfig;
 
-pub trait Generate {
-  fn gen(self) -> rust::Tokens;
+pub trait CodeGenerator {
+  fn generate(&self) -> anyhow::Result<rust::Tokens>;
 }

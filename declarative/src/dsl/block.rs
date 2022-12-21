@@ -1,23 +1,23 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
-use super::peripheral::PeripheralRef;
+use super::device::PeripheralRef;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInput {
-  block: String,
-  id: String
+  pub block: String,
+  pub id: String
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockOutput {
-  block: String,
-  id: String
+  pub block: String,
+  pub id: String
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-enum Value {
+pub enum Value {
   Int(i64),
   Float(f64),
   Bool(bool),
@@ -26,10 +26,10 @@ enum Value {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInstance {
-  id: String,
-  kind: String,
+  pub id: String,
+  pub kind: String,
   #[serde(default)]
-  parameters: HashMap<String, Value>,
+  pub parameters: HashMap<String, Value>,
   #[serde(default)]
-  peripherals: Vec<PeripheralRef>
+  pub peripherals: Vec<PeripheralRef>
 }

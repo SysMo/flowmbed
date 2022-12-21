@@ -1,6 +1,5 @@
-pub mod board;
-pub mod peripheral;
+pub mod device;
 pub mod block;
 pub mod circuit;
+pub mod task;
 pub mod system;
-pub mod event_loop;

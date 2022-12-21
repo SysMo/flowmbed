@@ -1,10 +1,11 @@
 use serde::{Serialize, Deserialize};
-use super::event_loop::EventLoopConfigEnum;
+use super::device::DeviceConfig;
+use super::circuit::CircuitConfig;
+use super::task::TaskConfigEnum;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct SystemConfig {
-  id: String,
-  event_loop: EventLoopConfigEnum,
-  sources: Vec<String>
+  pub devices: Vec<DeviceConfig>,
+  pub circuits: Vec<CircuitConfig>,
+  pub tasks: Vec<TaskConfigEnum>,
 }
-
