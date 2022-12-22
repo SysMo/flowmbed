@@ -25,6 +25,7 @@ pub enum Value {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BlockInstance {
   pub id: String,
   pub kind: String,

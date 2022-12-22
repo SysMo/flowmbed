@@ -1,5 +1,5 @@
 use crate::core::{
-  Block,
+  RequiresStorage,
   SystemStateInfo, StorageSize, DefaultSystemStrorage,
   SystemStorageBuilder,
   DiscreteState, Input,
@@ -56,8 +56,8 @@ impl<'a> DigitalOutput<'a>
 
 }
 
-impl<'a> Block for DigitalOutput<'a> {
-  const BLOCK_SIZE: StorageSize = StorageSize {
+impl<'a> RequiresStorage for DigitalOutput<'a> {
+  const SIZE: StorageSize = StorageSize {
     b_dstate: 1,
     ..StorageSize::DEFAULT
   };

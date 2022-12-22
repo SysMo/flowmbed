@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DeviceConfig {
   pub id: String,
   pub kind: DeviceKind,
@@ -14,6 +15,7 @@ pub enum DeviceKind {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PeripheralConfig {
   pub id: String,
   pub conf: PeripheralConfigEnum
@@ -27,11 +29,13 @@ pub enum PeripheralConfigEnum {
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DigitalOutputConfig {
   pub pin: u32
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DigitalInputConfig {
   pub pin: u32
 }

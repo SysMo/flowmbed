@@ -28,6 +28,7 @@ anyhow = {version = "1", features = ["backtrace"]}
 # toml-cfg = "0.1"
 log = "0.4"
 url = "2"
+const-default = "1.0"
 
 # esp32 = "0.16.0"
 

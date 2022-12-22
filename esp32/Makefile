@@ -1,7 +1,7 @@
 # SERIAL=/dev/ttyACM0
 SERIAL=/dev/ttyUSB0
 include credentials.vars
-EXAMPLE=01_blink
+EXAMPLE=01_blink_gen
 
 terminal/clear:
 	clear

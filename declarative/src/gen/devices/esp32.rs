@@ -34,16 +34,16 @@ impl PeripheryGenerator for ESP32PeripheryGenerator {
     Ok(output)
   }
 
-  fn generate_initialize(&self, peripheral: &PeripheralConfig, device_peripherals: &str) -> anyhow::Result<rust::Tokens> {
+  fn generate_initialize(&self, peripheral: &PeripheralConfig, device_var: &str) -> anyhow::Result<rust::Tokens> {
     let gpio = &self.gpio;
     let output = match &peripheral.conf {
       PeripheralConfigEnum::DigitalInput(input) => 
         quote! {
-          $(gpio)::PinDriver::input($(device_peripherals).pins.gpio$(input.pin))
+          $(gpio)::PinDriver::input($(device_var).pins.gpio$(input.pin))
         },
       PeripheralConfigEnum::DigitalOutput(output) => 
         quote! {
-          $(gpio)::PinDriver::output($(device_peripherals).pins.gpio$(output.pin))
+          $(gpio)::PinDriver::output($(device_var).pins.gpio$(output.pin))
         },
     };
 

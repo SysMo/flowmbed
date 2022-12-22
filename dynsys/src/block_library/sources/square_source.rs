@@ -1,5 +1,5 @@
 use crate::core::{
-  Block,
+  RequiresStorage,
   SystemStateInfo, StorageSize, DefaultSystemStrorage,
   SystemStorageBuilder,
   Parameter, DiscreteState, Output,
@@ -69,8 +69,8 @@ impl<'a> SquareSource<'a> {
 
 }
 
-impl<'a> Block for SquareSource<'a> {
-    const BLOCK_SIZE: StorageSize = StorageSize {
+impl<'a> RequiresStorage for SquareSource<'a> {
+    const SIZE: StorageSize = StorageSize {
       r_param: 2, b_param: 1, b_dstate: 1, r_dstate: 1, b_out: 1,
       ..StorageSize::DEFAULT
     };

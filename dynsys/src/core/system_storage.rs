@@ -36,6 +36,9 @@ impl StorageSize {
   }
 }
 
+pub trait RequiresStorage {
+  const SIZE: StorageSize;
+}
 
 pub trait NextIndex<T> {
   fn next_index(&mut self) -> usize;

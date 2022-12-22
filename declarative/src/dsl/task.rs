@@ -8,7 +8,7 @@ pub enum TaskConfigEnum {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct FixedStepTaskConfig {
   pub id: String,
-  pub device: String,
+  // pub device: String,
   pub circuit: String,
   pub t_step: f64,
   pub speedup: f64,

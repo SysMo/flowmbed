@@ -1,5 +1,5 @@
 use crate::core::{
-  Block,
+  RequiresStorage,
   SystemStateInfo, StorageSize, DefaultSystemStrorage,
   SystemStorageBuilder,
   Parameter, DiscreteState, Output, Input,
@@ -56,8 +56,8 @@ impl<'a> SimpleDelay<'a> {
 
 }
 
-impl<'a> Block for SimpleDelay<'a> {
-    const BLOCK_SIZE: StorageSize = StorageSize {
+impl<'a> RequiresStorage for SimpleDelay<'a> {
+    const SIZE: StorageSize = StorageSize {
       r_param: 1, b_param: 1, b_dstate: 2, r_dstate: 1, b_out: 1,
       ..StorageSize::DEFAULT
     };

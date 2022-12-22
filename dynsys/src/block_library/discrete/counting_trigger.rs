@@ -1,5 +1,5 @@
 use crate::core::{
-  Block,
+  RequiresStorage,
   SystemStateInfo, StorageSize, DefaultSystemStrorage,
   SystemStorageBuilder,
   Parameter, DiscreteState, Output, Input,
@@ -85,8 +85,8 @@ impl <'a> CountingTrigger<'a> {
 }
 
 
-impl<'a> Block for CountingTrigger<'a> {
-  const BLOCK_SIZE: StorageSize = StorageSize {
+impl<'a> RequiresStorage for CountingTrigger<'a> {
+  const SIZE: StorageSize = StorageSize {
     i_param: 3, b_param: 2, b_dstate: 2, i_dstate: 1, b_out: 1,
     ..StorageSize::DEFAULT
   };

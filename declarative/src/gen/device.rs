@@ -25,23 +25,24 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
       DeviceKind::esp32 => ESP32PeripheryGenerator::new(),
     };
 
-    let device_name = "LedSystem";
-    let device_peripherals = "device_peripherals";
+    let device_name = &self.device.id;
+    let peripherals_type = &format!("{}Peripherals", device_name);
+    let device_var = "device_peripherals";
 
     Ok(quote! {
       #[doc = $(format!("\"Device {}\"", self.device.id))]$['\r']
-      struct $(device_name)Peripherals<'a> {$['\r']
+      struct $(peripherals_type)<'a> {$['\r']
         $(for peripheral in &self.device.peripherals => 
           $(&peripheral.id): $(peripheral_gen.generate_declare(&peripheral)?),$['\r']
         )
       }
 
-      impl<'a> $(device_name)Peripherals<'a> {
-        pub fn new() -> $(device_name)Peripherals<'a> {
-          let $(device_peripherals) = $(peripheral_gen.take_peripherals()?);
-          $(device_name)Peripherals {
+      impl<'a> $(peripherals_type)<'a> {
+        pub fn new() -> $(peripherals_type)<'a> {
+          let $(device_var) = $(peripheral_gen.take_peripherals()?);
+          $(peripherals_type) {
             $(for peripheral in &self.device.peripherals => 
-              $(&peripheral.id): $(peripheral_gen.generate_initialize(&peripheral, device_peripherals)?).unwrap(),$['\r']
+              $(&peripheral.id): $(peripheral_gen.generate_initialize(&peripheral, device_var)?).unwrap(),$['\r']
             )  
           }
         }
@@ -54,5 +55,5 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
 pub trait PeripheryGenerator {
   fn take_peripherals(&self) -> anyhow::Result<rust::Tokens>;
   fn generate_declare(&self, peripheral: &PeripheralConfig) -> anyhow::Result<rust::Tokens>;
-  fn generate_initialize(&self, peripheral: &PeripheralConfig, device_peripherals: &str) -> anyhow::Result<rust::Tokens>;
+  fn generate_initialize(&self, peripheral: &PeripheralConfig, device_var: &str) -> anyhow::Result<rust::Tokens>;
 }

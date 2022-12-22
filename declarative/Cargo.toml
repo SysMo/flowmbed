@@ -10,12 +10,17 @@ serde = {version = "1.0", features = ["derive"]}
 serde_yaml = "0.9"
 genco = "0.17.2"
 anyhow = {version = "1", features = ["backtrace"]}
+void = "1.0.2"
+log = "0.4"
+simple_logger = "4.0"
 
 # TODO Remove when done testing
 [dev-dependencies]
 embedded-hal = "0.2.7"
 flowmbed_dynsys = {path = "../dynsys/"}
 
+const-default = "1.0"
+const-default-derive = "*"
+
 # fallback virtual hal
 esp32-virtual-hal = {path = "../esp32-virtual-hal"}
-simple_logger = "4.0"

@@ -4,7 +4,9 @@ use super::traits::CodeGenerator;
 use std::fs;
 use super::device::DeviceGenerator;
 use super::circuit::CircuitGenerator;
+use super::task::TaskGenerator;
 
+/// Generates code for the MCU system
 pub struct SystemGenerator {
   pub system: SystemConfig
 }
@@ -44,6 +46,9 @@ impl CodeGenerator for SystemGenerator {
 
     let circuit_gen = self.system.circuits.iter()
       .map(CircuitGenerator::new);
+
+    let task_gen = self.system.tasks.iter()
+    .map(TaskGenerator::new);
     
     let tokens = quote! {
       use flowmbed_dynsys::cfg_device;
@@ -57,10 +62,16 @@ impl CodeGenerator for SystemGenerator {
         $(gen.generate()?)$['\n']
       )
 
+      $(for gen in task_gen =>        
+        $(gen.generate()?)$['\n']
+      )
+
       fn main() -> anyhow::Result<()> {
-  
+        ///Configure logging
         cfg_device::config_logger();
-        println!("Hello!");
+        ///Start the main task
+        MainTask::run()?;
+
         Ok(())
       }
     

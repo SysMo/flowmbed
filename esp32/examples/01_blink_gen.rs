@@ -1,0 +1,1 @@
+/data/Workspace/SysMo/flowmbed/declarative/examples/01_blink_gen.rs

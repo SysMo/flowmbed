@@ -1,13 +1,13 @@
 ---
 
 devices:
-  - id: esp32_d1
+  - id: LedEsp
     kind: esp32
     peripherals:
       - id: led1
         conf:
           !DigitalOutput
-            pin: 5
+            pin: 15
       - id: led2
         conf:
           !DigitalOutput
@@ -18,7 +18,8 @@ devices:
             pin: 4
 
 circuits:
-  - id: LedSystemBlocks
+  - id: LedCircuit
+    device: LedEsp
     blocks:
       - id: source
         kind: sources::SquareSource
@@ -71,9 +72,8 @@ circuits:
 
 tasks:
   - !FixedStepTask
-      id: main
-      device: esp32_d1
-      circuit: LedSystemBlocks
+      id: MainTask
+      circuit: LedCircuit
       t_step: 0.01
       speedup: 1.0
 
