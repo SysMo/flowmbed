@@ -18,14 +18,14 @@ deepclean:
 	rm -rf target
 	rm -rf .embuild
 
-build:
-	cargo espflash save-image --target xtensa-esp32-espidf ESP32 program.bin
+# build:
+# 	cargo espflash save-image --target xtensa-esp32-espidf ESP32 program.bin
 
-flash:
-	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+# flash:
+# 	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 example/build: build/pre
-	cargo espflash save-image --example $(EXAMPLE) --target xtensa-esp32-espidf ESP32 program.bin
+	cargo espflash save-image --example $(EXAMPLE) ESP32 program.bin
 
 example/flash: build/pre
 	cargo espflash --example $(EXAMPLE) --release --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
