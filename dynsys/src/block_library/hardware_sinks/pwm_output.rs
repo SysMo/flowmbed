@@ -10,9 +10,8 @@ use super::super::hal;
 use const_default::ConstDefault;
 
 pub struct PwmOutput<'a> {
-  pub freq: Parameter<'a, f64>,
+  // pub freq: Parameter<'a, f64>,
   pub input: Input<'a, f64>,
-  //pub current: DiscreteState<'a, bool>,
   // Hardware Output
   out: hal::PwmPin<'a>,
 }
@@ -24,7 +23,7 @@ impl<'a> PwmOutput<'a>
     out: hal::PwmPin<'a>,
   ) -> PwmOutput<'a> {
     PwmOutput {
-      freq: builder.create_param(1e3),
+      // freq: builder.create_param(1e3),
       input: builder.create_input(),
       out: out
     }
@@ -54,7 +53,7 @@ impl<'a> PwmOutput<'a>
 impl<'a> RequiresStorage for PwmOutput<'a> {
   const SIZE: StorageSize = StorageSize {
     // b_dstate: 1,
-    r_param: 1,
+    // r_param: 1,
     ..StorageSize::DEFAULT
   };
 }
