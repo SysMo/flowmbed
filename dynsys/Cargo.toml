@@ -19,10 +19,10 @@ log = "0.4"
 # HAL
 embedded-hal = "=1.0.0-alpha.9"
 embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
-# device specific dependencies
-esp-idf-sys = { version = "0.31.11", optional = true }
-esp-idf-hal = {version = "0.39.3", optional = true}
-esp-idf-svc = { version = "0.43.4", optional = true, features = ["std", "experimental"]}
+# # device specific dependencies
+esp-idf-sys = { version = "0.32", optional = true }
+esp-idf-hal = {version = "0.40", optional = true}
+esp-idf-svc = { version = "0.45", optional = true, features = ["std", "experimental"]}
 
 # fallback virtual hal
 esp32-virtual-hal = {path = "../esp32-virtual-hal"}

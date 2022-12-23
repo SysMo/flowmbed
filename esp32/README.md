@@ -61,3 +61,8 @@ make flash
   CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
   ```
 - the size of the flash partition is increased to accomodate the program 
+
+
+### Visual Studio Code
+
+Disable `check on save` for the rust-analyzer plugin to speed up compilation.
