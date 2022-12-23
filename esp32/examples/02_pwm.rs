@@ -1,6 +1,5 @@
 
-// use esp_idf_hal::ledc::{LedcDriver, LedcTimerDriver};
-// use esp_idf_hal::delay::FreeRtos;
+use esp_idf_hal::delay::FreeRtos;
 use esp_idf_hal::ledc::{LedcDriver, LedcTimerDriver, config};
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::prelude::*;
@@ -23,10 +22,11 @@ fn main() -> anyhow::Result<()> {
     let max_duty = channel.get_max_duty();
     println!("{}", max_duty);
     channel.set_duty( max_duty / 2)?;
-    // FreeRtos::delay_ms(2000);
+    
+    FreeRtos::delay_ms(2000);
 
-    // loop {
-    //     FreeRtos::delay_ms(1000);
-    // }
+    loop {
+        FreeRtos::delay_ms(1000);
+    }
     Ok(()) 
 }
