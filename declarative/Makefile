@@ -1,10 +1,16 @@
-examples/blink/gen:
-	cargo +nightly run --example generate -- examples/01_blink.yaml examples/01_blink_gen.rs
+examples/%/gen_system:
+	cargo +nightly run --example generate_system -- examples/$*.yaml examples/$*_gen.rs
 
-examples/blink/run:
-	cargo run --example 01_blink_gen
+examples/%/run_system:
+	cargo run --example $*_gen
 
-examples/blink: build/pre examples/blink/gen examples/blink/run
+examples/%/gen_block:
+	cargo +nightly run --example generate_block -- examples/$*.yaml examples/$*
+
+
+examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
+
+examples/counting_trigger: build/pre examples/11_counting_trigger/gen_block
 
 
 terminal/clear:

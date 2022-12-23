@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use super::block::{BlockInstance, BlockInput, BlockOutput};
+use super::block_instance::{BlockInstance, BlockInput, BlockOutput};
 use std::collections::HashMap;
 use crate::util::{serde_helpers as sh};
 

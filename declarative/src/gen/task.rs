@@ -39,7 +39,6 @@ impl<'a> CodeGenerator for FixedStepTaskGenerator<'a> {
   fn generate(&self) -> anyhow::Result<genco::prelude::rust::Tokens> {
       let task_name = &self.task.id;
       let ciruit_type = &self.task.circuit;
-      let peripherals_type = &format!("{}Peripherals", self.task.circuit);
 
       Ok(quote!(
         struct $(task_name) {}

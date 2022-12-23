@@ -1,7 +1,7 @@
+use std::fs;
 use crate::dsl::system::SystemConfig;
 use genco::prelude::{rust, quote};
 use super::traits::CodeGenerator;
-use std::fs;
 use super::device::DeviceGenerator;
 use super::circuit::CircuitGenerator;
 use super::task::TaskGenerator;

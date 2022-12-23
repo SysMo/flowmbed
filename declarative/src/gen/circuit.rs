@@ -1,5 +1,6 @@
+use crate::dsl::FieldValue;
 use crate::dsl::circuit::{CircuitConfig, BlockConnection};
-use crate::dsl::block::{BlockInstance, Value};
+use crate::dsl::block_instance::{BlockInstance};
 use super::traits::CodeGenerator;
 use genco::prelude::{rust, quote};
 
@@ -53,10 +54,10 @@ impl<'a> CircuitGenerator<'a> {
     let modifiers = block.parameters.iter().map(
       |(key, value)| {
         let value_str = match &value {
-          &Value::Bool(x) => x.to_string(),
-          &Value::Int(x) => x.to_string(),
-          &Value::Float(x) => x.to_string(),
-          &Value::String(x) => x.to_string(),
+          &FieldValue::Bool(x) => x.to_string(),
+          &FieldValue::Int(x) => x.to_string(),
+          &FieldValue::Float(x) => x.to_string(),
+          &FieldValue::String(x) => x.to_string(),
         };
         quote!(.$(key)($(value_str)))
       }
