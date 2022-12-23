@@ -16,6 +16,10 @@ devices:
         conf:
           !DigitalOutput
             pin: 4
+      - id: led4
+        conf:
+          !DigitalOutput
+            pin: 16
 
 circuits:
   - id: LedCircuit
@@ -47,6 +51,13 @@ circuits:
           pulses_down: 4
           initial_count: 0
 
+      - id: trigger4
+        kind: discrete::CountingTrigger
+        parameters:
+          pulses_up: 4
+          pulses_down: 3
+          initial_count: 0
+
       - id: led1
         kind: hardware_sinks::DigitalOutput
         peripherals:
@@ -62,6 +73,11 @@ circuits:
         peripherals:
           - led3
 
+      - id: led4
+        kind: hardware_sinks::DigitalOutput
+        peripherals:
+          - led4
+
     connections:
       - trigger1.input: source.output
       - led1.input: trigger1.output
@@ -69,6 +85,8 @@ circuits:
       - led2.input: trigger2.output
       - trigger3.input: source.output
       - led3.input: trigger3.output
+      - trigger4.input: source.output
+      - led4.input: trigger4.output
 
 tasks:
   - !FixedStepTask

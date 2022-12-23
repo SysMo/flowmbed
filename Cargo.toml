@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+  "declarative",
+  "dynsys",
+  "esp32-virtual-hal"
+]
+
+exclude = [
+  "esp32"
+]

@@ -24,6 +24,8 @@ impl SystemGenerator {
       Err(e) => anyhow::bail!(e)
     };
 
+    // println!("{:#?}", system);
+
     Ok(SystemGenerator {
       system
     })
