@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 serde = {version = "1.0", features = ["derive"]}
 serde_yaml = "0.9"
+strum = { version = "0.24", features = ["derive"] }
 genco = "0.17.2"
 anyhow = {version = "1", features = ["backtrace"]}
 void = "1.0.2"

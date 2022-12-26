@@ -51,17 +51,21 @@ where
 }
 
 
-pub fn map2tuple<'a, T>(m: &'a HashMap<String, T>) -> anyhow::Result<(&'a str, &'a T)> {
+pub fn map2tuple<'a, T : Clone>(m: HashMap<String, T>) -> anyhow::Result<(String, T)> {
   if m.len() != 1 {
     anyhow::bail!("Expected hash-map with a single key-value pair")
   } else {
     let k = m.keys().next().unwrap();
-    let v = &m[k];
-    Ok((k, v))
+    let v = m[k].clone();
+    Ok((k.to_owned(), v))
   }
 }
 
-pub fn to_array<const N: usize, O: Default + Copy + core::fmt::Debug>(iter: &mut dyn Iterator<Item = O>) -> anyhow::Result<[O; N]> {
+pub fn to_array<const N: usize, I, O>(mut iter: I) -> anyhow::Result<[O; N]> 
+where
+  I: Iterator<Item = O>,
+  O: Default + Copy + core::fmt::Debug
+{
   let mut res: [O; N] = [Default::default(); N];
   let mut i: usize = 0;
   loop {

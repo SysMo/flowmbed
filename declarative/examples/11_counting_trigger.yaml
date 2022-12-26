@@ -2,17 +2,17 @@
 
 name: CountingTrigger
 parameters:
-  - pulses_up: [int, 1]
-  - pulses_down: [int, 1]
-  - initial_state: [bool, false]
-  - initial_count: [int, 0]
-  - count_on_rising: [bool, true]
-# inputs:
-#   - input: [bool],
-# outputs:
-#   - output: [bool, false],
-# discrete_states:
-#   - last_input: [bool, false]
-#   - current: [bool, false]
-#   - counter: [bool, 0]
+  - pulses_up: [Int, 1]
+  - pulses_down: [Int, 1]
+  - initial_state: [Bool, false]
+  - initial_count: [Int, 0]
+  - count_on_rising: [Bool, true]
+inputs:
+  - input: [Bool]
+outputs:
+  - output: [Bool, false]
+discrete_states:
+  - last_input: [Bool, false]
+  - current: [Bool, false]
+  - counter: [Bool, 0]
             

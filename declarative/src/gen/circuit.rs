@@ -53,7 +53,7 @@ impl<'a> CircuitGenerator<'a> {
 
     let modifiers = block.parameters.iter().map(
       |(key, value)| {
-        let value_str = match &value {
+        let value_str = match &value {          
           &FieldValue::Bool(x) => x.to_string(),
           &FieldValue::Int(x) => x.to_string(),
           &FieldValue::Float(x) => x.to_string(),

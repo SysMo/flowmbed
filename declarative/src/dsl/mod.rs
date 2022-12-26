@@ -6,6 +6,7 @@ pub mod system;
 pub mod block_def;
 
 use serde::{Serialize, Deserialize};
+use strum::EnumString;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
@@ -16,7 +17,18 @@ pub enum FieldValue {
   String(String),
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+impl FieldValue {
+  pub fn as_text(&self) -> String {
+    match self {
+      FieldValue::Int(x) => x.to_string(),
+      FieldValue::Bool(x) => x.to_string(),
+      FieldValue::Float(x) => x.to_string(),
+      FieldValue::String(x) => x.to_string()
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, EnumString)]
 pub enum FieldType {
   Int,
   Float,

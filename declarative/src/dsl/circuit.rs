@@ -25,7 +25,7 @@ impl TryFrom<ConnectionMap> for BlockConnection {
   type Error = anyhow::Error;
 
   fn try_from(cm: ConnectionMap) -> Result<Self, Self::Error> {
-    let conn_tupple = sh::map2tuple(&cm)?;
+    let conn_tupple = sh::map2tuple(cm)?;
     let from_tupple: [&str; 2] = 
       sh::to_array(&mut conn_tupple.1.split("."))?;
     let to_tupple: [&str; 2] = 
