@@ -42,8 +42,6 @@ impl<'a> PwmOutput<'a>
   }
 
   fn apply(&mut self, value: f64) -> anyhow::Result<()> {
-    // let max_duty = self.out.get_max_duty();
-    // let duty = (max_duty * *self.input).round();
     self.out.set_duty(value);
     Ok(())
   }

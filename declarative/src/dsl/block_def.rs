@@ -6,15 +6,15 @@ use crate::util::{serde_helpers as sh};
 #[derive(Debug, PartialEq, Serialize, Deserialize)] 
 #[serde(deny_unknown_fields)]
 pub struct BlockDefinition {
-  name: String,
+  pub name: String,
   #[serde(default)]
-  parameters: Vec<ParameterDefinition>,
+  pub parameters: Vec<ParameterDefinition>,
   #[serde(default)]
-  inputs: Vec<InputDefinition>,
+  pub inputs: Vec<InputDefinition>,
   #[serde(default)]
-  outputs: Vec<OutputDefinition>,
+  pub outputs: Vec<OutputDefinition>,
   #[serde(default)]
-  discrete_states: Vec<DiscreteStateDefinition>,
+  pub discrete_states: Vec<DiscreteStateDefinition>,
 }
 
 type FieldDefinitionVec = Vec<FieldValue>;
@@ -46,9 +46,9 @@ type FieldDef = HashMap<String, FieldAttrs>;
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "FieldDef")]
 pub struct ParameterDefinition {
-  name: String,
-  tpe: FieldType,
-  default: FieldValue
+  pub name: String,
+  pub tpe: FieldType,
+  pub default: FieldValue
 }
 
 impl TryFrom<FieldDef> for ParameterDefinition {
@@ -70,8 +70,8 @@ impl TryFrom<FieldDef> for ParameterDefinition {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "FieldDef")]
 pub struct InputDefinition {
-  name: String,
-  tpe: FieldType,  
+  pub name: String,
+  pub tpe: FieldType,  
 }
 
 impl TryFrom<FieldDef> for InputDefinition {
@@ -91,9 +91,9 @@ impl TryFrom<FieldDef> for InputDefinition {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "FieldDef")]
 pub struct OutputDefinition {
-  name: String,
-  tpe: FieldType,
-  default: FieldValue
+  pub name: String,
+  pub tpe: FieldType,
+  pub default: FieldValue
 }
 
 impl TryFrom<FieldDef> for OutputDefinition {
@@ -115,9 +115,9 @@ impl TryFrom<FieldDef> for OutputDefinition {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(try_from = "FieldDef")]
 pub struct DiscreteStateDefinition {
-  name: String,
-  tpe: FieldType,
-  initial: FieldValue  
+  pub name: String,
+  pub tpe: FieldType,
+  pub initial: FieldValue  
 }
 
 impl TryFrom<FieldDef> for DiscreteStateDefinition {

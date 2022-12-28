@@ -6,7 +6,7 @@ pub mod system;
 pub mod block_def;
 
 use serde::{Serialize, Deserialize};
-use strum::EnumString;
+use strum::{EnumString, Display};
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
@@ -28,10 +28,35 @@ impl FieldValue {
   }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, EnumString)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, EnumString, Display)]
 pub enum FieldType {
   Int,
   Float,
   Bool,
   String,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, EnumString, Display)]
+pub enum FieldKind {
+  Parameter,
+  Input,
+  Output,
+  DiscreteState,
+  ContinuousState
+}
+
+#[allow(dead_code)]
+#[derive(Default, Debug, PartialEq, Eq, Clone)]
+pub struct StorageSize {
+    pub r_param: usize,
+    pub b_param: usize,
+    pub i_param: usize,
+
+    pub r_dstate: usize,
+    pub b_dstate: usize,
+    pub i_dstate: usize,
+    
+    pub r_out: usize,
+    pub b_out: usize,
+    pub i_out: usize
 }

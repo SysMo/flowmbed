@@ -5,12 +5,14 @@ examples/%/run_system:
 	cargo run --example $*_gen
 
 examples/%/gen_block:
-	cargo +nightly run --example generate_block -- examples/$*.yaml examples/$*
+	cargo +nightly run --example generate_block -- examples/blocks/$*.yaml examples/blocks/$*
 
+examples/compile_blocks: build/pre
+	cargo build --example 11_blocks
 
 examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
 
-examples/counting_trigger: build/pre examples/11_counting_trigger/gen_block
+examples/counting_trigger: build/pre examples/counting_trigger/gen_block
 
 
 terminal/clear:
