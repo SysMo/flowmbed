@@ -6,9 +6,8 @@ examples/%/gen_system:
 examples/%/run_system:
 	cargo run --example $*_gen
 
-BLOCK_FOLDER:=../blocks/src
-
 examples/%/gen_block:
+	$(eval BLOCK_FOLDER:=../$*/src)
 	$(SETENV) && cargo +nightly run --example generate_block -- $(BLOCK_FOLDER)
 
 examples/compile_blocks: build/pre
@@ -16,8 +15,8 @@ examples/compile_blocks: build/pre
 
 examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
 
-examples/discrete_blocks: build/pre examples/discrete/gen_block
-	cd ../blocks && cargo build
+examples/core_blocks: build/pre examples/blocks/gen_block
+	$(SETENV) && cd ../blocks && cargo run --example 01_test_gen_block
 
 
 terminal/clear:

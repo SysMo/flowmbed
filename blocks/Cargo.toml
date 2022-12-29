@@ -9,4 +9,7 @@ edition = "2021"
 flowmbed_dynsys = {path = "../dynsys/"}
 anyhow = {version = "1", features = ["backtrace"]}
 
+[dev-dependencies]
+const-default = "1.0"
+
 

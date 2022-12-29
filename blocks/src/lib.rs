@@ -1,3 +1,3 @@
 
-mod discrete;
-mod sources;
+pub mod discrete;
+pub mod sources;
