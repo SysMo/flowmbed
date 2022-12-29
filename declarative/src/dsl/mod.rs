@@ -22,7 +22,7 @@ impl FieldValue {
     match self {
       FieldValue::Int(x) => x.to_string(),
       FieldValue::Bool(x) => x.to_string(),
-      FieldValue::Float(x) => x.to_string(),
+      FieldValue::Float(x) => format!("{:e}", x),
       FieldValue::String(x) => x.to_string()
     }
   }

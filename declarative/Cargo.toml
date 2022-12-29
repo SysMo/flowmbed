@@ -12,6 +12,9 @@ strum = { version = "0.24", features = ["derive"] }
 genco = "0.17.2"
 anyhow = {version = "1", features = ["backtrace"]}
 void = "1.0.2"
+glob = "0.3.0"
+convert_case = "0.6.0"
+
 log = "0.4"
 simple_logger = "4.0"
 

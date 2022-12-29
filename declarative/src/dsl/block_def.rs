@@ -3,6 +3,15 @@ use serde::{Serialize, Deserialize};
 use super::{FieldType, FieldValue};
 use crate::util::{serde_helpers as sh};
 
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)] 
+#[serde(deny_unknown_fields)]
+pub struct BlockModule {
+  #[serde(default)]
+  pub blocks: Vec<BlockDefinition>,
+}
+
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)] 
 #[serde(deny_unknown_fields)]
 pub struct BlockDefinition {

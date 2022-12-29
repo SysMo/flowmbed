@@ -7,3 +7,5 @@ pub mod circuit;
 pub mod task;
 pub mod system;
 pub mod devices;
+pub mod file_generator;
+pub mod comments;

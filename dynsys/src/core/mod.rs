@@ -16,3 +16,8 @@ pub use heap_storage::HeapSystemStorage;
 pub use system::{SystemStateInfo, DynamicalSystem};
 pub use system_runner::{SystemRunner, FixedStepRunner, FixedStepRunSettings};
 pub use peripheral::RequirePeripherals;
+
+pub type Int = i64;
+pub type Bool = bool;
+pub type Float = f64;
+pub use String;

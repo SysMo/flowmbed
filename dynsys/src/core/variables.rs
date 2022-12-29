@@ -9,7 +9,7 @@ pub struct Parameter<'a, T> {
 }
 
 impl<'a, T> Parameter<'a, T> {
-  pub fn reset(&self, value: T) {
+  pub fn reset(&mut self, value: T) {
     self.access.set(self.id, value).unwrap();
   }  
 }

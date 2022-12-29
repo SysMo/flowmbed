@@ -1,49 +1,79 @@
 use std::fs;
-use crate::dsl::{block_def::BlockDefinition, FieldType, FieldValue, FieldKind, StorageSize};
+use std::path;
 use genco::prelude::{rust, quote};
+use crate::dsl::{block_def::{BlockDefinition, BlockModule}, FieldType, FieldValue, FieldKind, StorageSize};
+use super::file_generator::FileGenerator;
 use super::traits::CodeGenerator;
+use super::comments::Comment;
+
 use log::*;
 
+
 /// Generate code for block definition
-pub struct BlockDefinitionGenerator {
-  block_def: BlockDefinition
+pub struct BlockModuleGenerator<P: AsRef<path::Path>> {
+  work_folder: P,
+  module_def: BlockModule
 }
 
-impl BlockDefinitionGenerator {
-  pub fn from_yaml(file_path: &str) -> anyhow::Result<BlockDefinitionGenerator> {
+impl<P: AsRef<path::Path>> BlockModuleGenerator<P> {
+  pub fn new(work_folder: P) -> anyhow::Result<BlockModuleGenerator<P>> {
+    let mod_yaml_path = work_folder.as_ref().join("mod.yaml").canonicalize()?;
 
-    let yaml = match fs::read_to_string(file_path) {
+    info!("Reading yaml file: {}", mod_yaml_path.display());
+    
+    let yaml = match fs::read_to_string(mod_yaml_path) {
       Ok(x) => x,
       Err(e) => anyhow::bail!(e)
     };
 
-    let block_def: BlockDefinition = match serde_yaml::from_str(&yaml) {
+    let module_def: BlockModule = match serde_yaml::from_str(&yaml) {
       Ok(x) => x,
       Err(e) => anyhow::bail!(e)
     };
 
-    println!("{:#?}", block_def);
+    // println!("{:#?}", module_def);
 
-    Ok(BlockDefinitionGenerator {
-      block_def
+    Ok(BlockModuleGenerator {
+      work_folder,
+      module_def
     })
 
   }
 
-  pub fn generate_files(&self, output_path: &str) -> anyhow::Result<()> {
-    let decl_gen = BlockDeclGenerator::new(&self.block_def);
-    let tokens = decl_gen.generate()?;
-    let text = tokens.to_file_string()?;
-    let output_file = &format!("{}_decl.rs", output_path);
-    info!("Generating declaration file {}", output_file);
-    fs::write(output_file, text)?;
+  fn file_name(&self, name: &str, suffix: &str) -> String {
+    use convert_case::{Case, Casing};
+    let fname = name.from_case(Case::Camel).to_case(Case::Snake);
+    format!("{}_{}", fname, suffix)
+  }
+  
+  pub fn generate_files(&self) -> anyhow::Result<()> {
 
-    let impl_gen = BlockImplGenerator::new(&self.block_def);
-    let tokens = impl_gen.generate()?;
-    let text = tokens.to_file_string()?;
-    let output_file = &format!("{}_impl.rs", output_path);
-    info!("Generating implementation file {}", output_file);
-    fs::write(output_file, text)?;
+    for block in &self.module_def.blocks {
+
+      FileGenerator::new(
+        &self.work_folder, 
+        &self.file_name(&block.name, "blck_auto.rs"),
+        &BlockAutoGenerator::new(&block)
+      ).generate()?;
+      
+
+      FileGenerator::new(
+        &self.work_folder, 
+        &self.file_name(&block.name, "blck_impl.rs"),
+        &BlockImplGenerator::new(&block, &self.file_name(&block.name, "blck_auto"))
+      ).overwrite(false).generate()?;
+    }
+
+    FileGenerator::new(
+      &self.work_folder,
+      "mod.rs",
+      &ModFileGenerator::new(
+        self.module_def.blocks
+        .iter().map(|x| 
+          (self.file_name(&x.name, ""), x.name.clone())
+        )
+      )
+    ).generate()?;
 
     Ok(())
   }
@@ -51,38 +81,47 @@ impl BlockDefinitionGenerator {
 
 
 // ==============================
-pub struct BlockDeclGenerator<'a> {
+pub struct BlockAutoGenerator<'a> {
   block_def: &'a BlockDefinition,
   dynsys_core: rust::Import,
 }
 
-impl<'a> BlockDeclGenerator<'a> {
-  pub fn new(block_def: &'a BlockDefinition) -> BlockDeclGenerator<'a> {
-    BlockDeclGenerator {
+impl<'a> BlockAutoGenerator<'a> {
+  pub fn new(block_def: &'a BlockDefinition) -> BlockAutoGenerator<'a> {
+    BlockAutoGenerator {
       block_def,
-      dynsys_core: rust::import("flowmbed_dynsys", "core"),
+      dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
     }
   }
 
   fn declare_block(&self) -> anyhow::Result<rust::Tokens> {
-    let ds_core = &self.dynsys_core;
+    // let ds_core = &self.dynsys_core;
     Ok(quote!(
       /// Declare the block struct
+      #[allow(dead_code)]
       pub struct $(&self.block_def.name)<'a> {
-        $(for field in &self.block_def.parameters join (,$['\r']) => 
-          $(self.decl_field(&field.name, &FieldKind::Parameter, &field.tpe))
-        ),
+        $(if !self.block_def.parameters.is_empty() =>
+          $(for field in &self.block_def.parameters join (,$['\r']) => 
+            $(self.decl_field(&field.name, &FieldKind::Parameter, &field.tpe))
+          ),
+        )
 
-        $(for field in &self.block_def.inputs join (,$['\r']) => 
-          $(self.decl_field(&field.name, &FieldKind::Input, &field.tpe))
-        ),
+        $(if !self.block_def.inputs.is_empty() =>
+          $(for field in &self.block_def.inputs join (,$['\r']) => 
+            $(self.decl_field(&field.name, &FieldKind::Input, &field.tpe))
+          ),
+        )
 
-        $(for field in &self.block_def.outputs join (,$['\r']) => 
-          $(self.decl_field(&field.name, &FieldKind::Output, &field.tpe))
-        ),
+        $(if !self.block_def.outputs.is_empty() =>
+          $(for field in &self.block_def.outputs join (,$['\r']) => 
+            $(self.decl_field(&field.name, &FieldKind::Output, &field.tpe))
+          ),
+        )
 
-        $(for field in &self.block_def.discrete_states join (,$['\r']) => 
-          $(self.decl_field(&field.name, &FieldKind::DiscreteState, &field.tpe))
+        $(if !self.block_def.discrete_states.is_empty() =>
+          $(for field in &self.block_def.discrete_states join (,$['\r']) => 
+            $(self.decl_field(&field.name, &FieldKind::DiscreteState, &field.tpe))
+          ),
         )
       }
     ))
@@ -92,7 +131,7 @@ impl<'a> BlockDeclGenerator<'a> {
   fn decl_field(&self, name: &str, kind: &FieldKind, tpe: &FieldType) -> rust::Tokens {
     // let method = if (kind == "")
     quote!(
-      $(name): $(&self.dynsys_core)::$(kind.to_string())<'a, $(&self.dynsys_core)::$(tpe.to_string())>
+      pub $(name): $(&self.dynsys_core)::$(kind.to_string())<'a, $(&self.dynsys_core)::$(tpe.to_string())>
     )
   }
 
@@ -101,26 +140,34 @@ impl<'a> BlockDeclGenerator<'a> {
     let ds_core = &self.dynsys_core;
     Ok(quote!(
       /// Implement the block struct
+      #[allow(dead_code)]
       impl<'a>  $(&self.block_def.name)<'a> {
         pub fn new<ST: $(ds_core)::DefaultSystemStrorage>(
           builder: &mut $(ds_core)::SystemStorageBuilder<'a, ST>
         ) -> $(&self.block_def.name)<'a> {
           $(&self.block_def.name) {
-            $(for field in &self.block_def.parameters join (,$['\r']) => 
-              $(self.init_field(&field.name, &FieldKind::Parameter, &field.default))
-            ),
+            $(if !self.block_def.parameters.is_empty() =>
+              $(for field in &self.block_def.parameters join (,$['\r']) => 
+                $(self.init_field(&field.name, &FieldKind::Parameter, &field.default))
+              ),
+            )
     
-            $(for field in &self.block_def.inputs join (,$['\r']) => 
-              $(self.init_input(&field.name))
-            ),
-    
-            $(for field in &self.block_def.outputs join (,$['\r']) => 
-              $(self.init_field(&field.name, &FieldKind::Output, &field.default))
-            ),
-    
-            $(for field in &self.block_def.discrete_states join (,$['\r']) => 
-              $(self.init_field(&field.name, &FieldKind::DiscreteState, &field.initial))
-            )  
+            $(if !self.block_def.inputs.is_empty() =>
+              $(for field in &self.block_def.inputs join (,$['\r']) => 
+                $(self.init_input(&field.name))
+              ),
+            )
+            $(if !self.block_def.outputs.is_empty() =>    
+              $(for field in &self.block_def.outputs join (,$['\r']) => 
+                $(self.init_field(&field.name, &FieldKind::Output, &field.default))
+              ),
+            )
+      
+            $(if !self.block_def.discrete_states.is_empty() =>
+              $(for field in &self.block_def.discrete_states join (,$['\r']) => 
+                $(self.init_field(&field.name, &FieldKind::DiscreteState, &field.initial))
+              )
+            )
           }
         }
 
@@ -161,7 +208,8 @@ impl<'a> BlockDeclGenerator<'a> {
         component: $(&self.block_def.name)<'a>
       }
 
-      impl<'a> Builder<'a> {
+      #[allow(dead_code)]
+      impl<'a> BlockBuilder<'a> {
         $(for field in &self.block_def.parameters join ($['\r']) => 
           $(self.create_field_setter(&field.name, &field.tpe))
         )
@@ -169,7 +217,7 @@ impl<'a> BlockDeclGenerator<'a> {
       }
 
       impl<'a> From<BlockBuilder<'a>> for $(&self.block_def.name)<'a> {
-        fn from(x: Builder<'a>) -> Self {
+        fn from(x: BlockBuilder<'a>) -> Self {
           x.component
         }
       }   
@@ -178,7 +226,7 @@ impl<'a> BlockDeclGenerator<'a> {
 
   fn create_field_setter(&self, name: &str, tpe: &FieldType) -> rust::Tokens {
     quote!(
-      pub fn $(name)(mut self, v: $(tpe.to_string())) -> Self {
+      pub fn $(name)(mut self, v: $(&self.dynsys_core)::$(tpe.to_string())) -> Self {
         self.component.$(name).reset(v);
         self
       }
@@ -228,7 +276,7 @@ impl<'a> BlockDeclGenerator<'a> {
   }
 }
 
-impl<'a> CodeGenerator for BlockDeclGenerator<'a> {
+impl<'a> CodeGenerator for BlockAutoGenerator<'a> {
   fn generate(&self) -> anyhow::Result<rust::Tokens> {
     
     Ok(quote!(
@@ -248,14 +296,16 @@ impl<'a> CodeGenerator for BlockDeclGenerator<'a> {
 /// ==============================
 pub struct BlockImplGenerator<'a> {
   block_def: &'a BlockDefinition,
+  blck_auto_name: &'a str,
   dynsys_core: rust::Import,
 }
 
 impl<'a> BlockImplGenerator<'a> {
-  pub fn new(block_def: &'a BlockDefinition) -> BlockImplGenerator<'a> {
+  pub fn new(block_def: &'a BlockDefinition, blck_auto_name: &'a str ) -> BlockImplGenerator<'a> {
     BlockImplGenerator {
       block_def,
-      dynsys_core: rust::import("flowmbed_dynsys", "core"),
+      blck_auto_name,
+      dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
     }
   }
 }
@@ -265,18 +315,55 @@ impl<'a> CodeGenerator for BlockImplGenerator<'a> {
     let ds_core = &self.dynsys_core;
 
     Ok(quote!(
+      use super::$(self.blck_auto_name)::*;
+      
       /// Implementation
+      #[allow(unused_variables)]
       impl<'a> $(ds_core)::DynamicalSystem for $(&self.block_def.name)<'a> {
         fn init(&mut self) -> anyhow::Result<()> {
+          $(Comment([">>> Begin section @DynamicalSystem::init"]))
           Ok(())
+          $(Comment([">>> End section @DynamicalSystem::init"]))
         }
 
         fn step(&mut self, ssi: &$(ds_core)::SystemStateInfo) -> anyhow::Result<()> {
-
+          $(Comment([">>> Begin section @DynamicalSystem::step"]))
           Ok(())
+          $(Comment([">>> End section @DynamicalSystem::step"]))
         }
       }
     ))
   }
 }
 
+/// ==============================
+/// ModFileGenerator
+/// ==============================
+pub struct ModFileGenerator {
+  block_files: Vec<(String, String)>,
+  dynsys_core: rust::Import,
+}
+
+impl ModFileGenerator {
+  pub fn new<C: Iterator<Item = (String, String)>>(block_files: C) -> ModFileGenerator {
+    ModFileGenerator {
+      block_files: block_files.collect(),
+      dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
+    }
+  }
+}
+
+impl CodeGenerator for ModFileGenerator {
+  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+    // let ds_core = &self.dynsys_core;
+
+    Ok(quote!(
+      $(for (file, block) in &self.block_files => 
+        mod $(file)blck_auto;
+        mod $(file)blck_impl;
+
+        pub use $(file)blck_auto::$(block);
+      )
+    ))
+  }
+}

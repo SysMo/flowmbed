@@ -1,18 +1,23 @@
+SETENV:=export RUST_BACKTRACE=1
+
 examples/%/gen_system:
 	cargo +nightly run --example generate_system -- examples/$*.yaml examples/$*_gen.rs
 
 examples/%/run_system:
 	cargo run --example $*_gen
 
+BLOCK_FOLDER:=../blocks/src
+
 examples/%/gen_block:
-	cargo +nightly run --example generate_block -- examples/blocks/$*.yaml examples/blocks/$*
+	$(SETENV) && cargo +nightly run --example generate_block -- $(BLOCK_FOLDER)
 
 examples/compile_blocks: build/pre
 	cargo build --example 11_blocks
 
 examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
 
-examples/counting_trigger: build/pre examples/counting_trigger/gen_block
+examples/discrete_blocks: build/pre examples/discrete/gen_block
+	cd ../blocks && cargo build
 
 
 terminal/clear:

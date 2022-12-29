@@ -1,0 +1,13 @@
+---
+
+blocks:
+  - name: SquareWaveSource
+    parameters:
+      - period: [Float, 1.0]
+      - duty: [Float, 0.5]
+      - initial: [Bool, false]
+    outputs:
+      - output: [Bool, false]
+    discrete_states:
+      - current: [Bool, false]
+      - last_change: [Float, 0.0]
