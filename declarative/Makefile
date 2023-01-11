@@ -1,28 +1,37 @@
 SETENV:=export RUST_BACKTRACE=1
 
-examples/%/gen_system:
-	cargo +nightly run --example generate_system -- examples/$*.yaml examples/$*_gen.rs
-
-examples/%/run_system:
-	cargo run --example $*_gen
-
-examples/%/gen_block:
-	$(eval BLOCK_FOLDER:=../$*/src)
-	$(SETENV) && cargo +nightly run --example generate_block -- $(BLOCK_FOLDER)
-
-examples/compile_blocks: build/pre
-	cargo build --example 11_blocks
-
-examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
-
-examples/core_blocks: build/pre examples/blocks/gen_block
-	$(SETENV) && cd ../blocks && cargo run --example 01_test_gen_block
-
 
 terminal/clear:
 	clear
 
 build/pre: terminal/clear
+
+gen_blocks/%:
+	$(eval BLOCK_FOLDER:=../$*/src)
+	$(SETENV) && cargo +nightly run --bin generate_blocks -- $(BLOCK_FOLDER)
+
+gen_system/%:
+	$(eval FILE_PATH:=../$*)
+	$(SETENV) && cargo +nightly run --bin generate_system -- $(FILE_PATH)
+
+
+examples/core_blocks: build/pre gen_blocks/blocks
+	$(SETENV) && cd ../blocks && cargo run --example 01_test_gen_block
+
+
+examples/01_blink: build/pre gen_system/systems/examples/01_blink
+
+
+
+
+
+
+# examples/%/run_system:
+# 	cargo run --example $*_gen
+
+# examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
+
+
 
 
 # examples/blink_template:

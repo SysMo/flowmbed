@@ -1,0 +1,13 @@
+---
+
+blocks:
+  - name: DigitalOutput
+    inputs: 
+      - input: [Bool]
+    discrete_states:    
+      - current: [Bool, false]
+    peripherals:
+      - name: out
+        direction: Out
+        protocol: crate::hal::OutputPin
+

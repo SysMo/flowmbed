@@ -1,5 +1,6 @@
 use std::env;
 use simple_logger;
+use log::*;
 
 use flowmbed_declarative::gen::system::SystemGenerator;
 
@@ -7,10 +8,11 @@ fn main() -> anyhow::Result<()> {
   simple_logger::SimpleLogger::new().env().init().unwrap();
 
   let args: Vec<String> = env::args().collect();
-  let yaml_input = &args[1];
-  let rust_output = &args[2];
-  println!("Generating rust code");
-  println!("{} -> {}", yaml_input, rust_output);
+  let file_path = &args[1];
+  let yaml_input = &format!("{}.yaml", file_path);
+  let rust_output = &format!("{}_gen.rs", file_path);
+  info!("Generating rust code");
+  info!("{} -> {}", yaml_input, rust_output);
   
 
   let generator  = SystemGenerator::from_yaml(&yaml_input)?;

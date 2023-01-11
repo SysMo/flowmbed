@@ -11,3 +11,10 @@ blocks:
     discrete_states:
       - current: [Bool, false]
       - last_change: [Float, 0.0]
+  - name: SineWaveSource
+    parameters:
+      - period: [Float, 1.0]
+      - phase: [Float, 0.0]
+      - amplitude: [Float, 1.0]
+    outputs:
+      - output: [Float, 0.0]

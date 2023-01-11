@@ -8,8 +8,8 @@ pub fn main() -> anyhow::Result<()> {
     core::StorageSize::DEFAULT
       .add(sources::SquareWaveSource::SIZE);
   let storage = core::HeapSystemStorage::new(SIZE);
-  let mut builder = core::SystemStorageBuilder::new(&storage);
-  let mut s1 = sources::SquareWaveSource::new(&mut builder);
+  let mut storage_builder = core::SystemStorageBuilder::new(&storage);
+  let mut s1: sources::SquareWaveSource = sources::SquareWaveSource::builder(&mut storage_builder).period(0.5).into();
   s1.init()?;
   println!("All ok!");
   Ok(())

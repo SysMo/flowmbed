@@ -1,6 +1,6 @@
 use flowmbed_dynsys::core as dscore;
 
-use super::square_wave_source_blck_auto::*;
+use super::square_wave_source_auto::*;
 
 #[doc=" Implementation"]
 #[allow(unused_variables)]

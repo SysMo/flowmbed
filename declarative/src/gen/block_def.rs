@@ -52,15 +52,15 @@ impl<P: AsRef<path::Path>> BlockModuleGenerator<P> {
 
       FileGenerator::new(
         &self.work_folder, 
-        &self.file_name(&block.name, "blck_auto.rs"),
+        &self.file_name(&block.name, "auto.rs"),
         &BlockAutoGenerator::new(&block)
       ).generate()?;
       
 
       FileGenerator::new(
         &self.work_folder, 
-        &self.file_name(&block.name, "blck_impl.rs"),
-        &BlockImplGenerator::new(&block, &self.file_name(&block.name, "blck_auto"))
+        &self.file_name(&block.name, "impl.rs"),
+        &BlockImplGenerator::new(&block, &self.file_name(&block.name, "auto"))
       ).overwrite(false).generate()?;
     }
 
@@ -123,6 +123,12 @@ impl<'a> BlockAutoGenerator<'a> {
             $(self.decl_field(&field.name, &FieldKind::DiscreteState, &field.tpe))
           ),
         )
+
+        $(if !self.block_def.peripherals.is_empty() =>
+          $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
+            $(self.decl_peripheral(&peripheral.name, &peripheral.protocol))
+          ),
+        )
       }
     ))
 
@@ -135,6 +141,12 @@ impl<'a> BlockAutoGenerator<'a> {
     )
   }
 
+  fn decl_peripheral(&self, name: &str, protocol: &str) -> rust::Tokens {
+    quote!(
+      pub $(name): $(protocol)<'a>
+    )
+  }
+
 
   fn implement_block(&self) -> anyhow::Result<rust::Tokens> {
     let ds_core = &self.dynsys_core;
@@ -142,13 +154,99 @@ impl<'a> BlockAutoGenerator<'a> {
       /// Implement the block struct
       #[allow(dead_code)]
       impl<'a>  $(&self.block_def.name)<'a> {
-        pub fn new<ST: $(ds_core)::DefaultSystemStrorage>(
-          builder: &mut $(ds_core)::SystemStorageBuilder<'a, ST>
-        ) -> $(&self.block_def.name)<'a> {
+        // pub fn new<ST: $(ds_core)::DefaultSystemStrorage>(
+        //   builder: &mut $(ds_core)::SystemStorageBuilder<'a, ST>,
+        //   $(if !self.block_def.peripherals.is_empty() =>
+        //     $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
+        //       $(&peripheral.name): $(&peripheral.protocol)<'a>
+        //     ),
+        //   )
+      
+        // ) -> $(&self.block_def.name)<'a> {
+
+        // }
+
+        pub fn builder<ST: $(ds_core)::DefaultSystemStrorage>(
+          storage_builder: &'a mut $(ds_core)::SystemStorageBuilder<'a, ST>
+        ) -> BlockBuilder<'a, ST> {
+          BlockBuilder {
+            __storage_builder: storage_builder,
+            $(for field in &self.block_def.parameters join ($['\r']) => 
+              val_$(&field.name): $(&field.default.as_text()),
+            )
+            $(if !self.block_def.peripherals.is_empty() =>
+              $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
+                periph_$(&peripheral.name): None,
+              )
+            )              
+          }
+        }
+      }
+    ))
+
+  }
+
+  fn create_builder(&self) -> anyhow::Result<rust::Tokens> {
+    let ds_core = &self.dynsys_core;
+    Ok(quote!(
+      pub struct BlockBuilder<'a, ST: $(ds_core)::DefaultSystemStrorage> {
+        __storage_builder: &'a mut $(ds_core)::SystemStorageBuilder<'a, ST>,
+        $(if !self.block_def.peripherals.is_empty() =>
+          $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
+            periph_$(&peripheral.name): Option<$(&peripheral.protocol)<'a>>,
+          )
+        )                
+        $(for field in &self.block_def.parameters join ($['\r']) => 
+          val_$(&field.name): $(&self.dynsys_core)::$(&field.tpe.to_string()),
+        )
+      }
+    ))
+  }
+
+  fn impl_builder(&self) -> anyhow::Result<rust::Tokens> {
+    let ds_core = &self.dynsys_core;
+    Ok(quote!(
+      #[allow(dead_code)]
+      impl<'a, ST: $(ds_core)::DefaultSystemStrorage> BlockBuilder<'a, ST> {
+        $(for field in &self.block_def.parameters join ($['\r']) => 
+          $(self.create_field_setter(&field.name, &field.tpe))
+        )
+
+        $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
+          $(self.create_peripheral_setter(&peripheral.name, &peripheral.protocol))
+        )
+      }   
+    ))
+  }
+
+  fn create_field_setter(&self, name: &str, tpe: &FieldType) -> rust::Tokens {
+    quote!(
+      pub fn $(name)(mut self, v: $(&self.dynsys_core)::$(tpe.to_string())) -> Self {
+        self.val_$(name) = v;
+        self
+      }
+    )
+  }
+
+  fn create_peripheral_setter(&self, name: &str, protocol: &str) -> rust::Tokens {
+    quote!(
+      pub fn $(name)(mut self, v: $(protocol)<'a>) -> Self {
+        self.periph_$(name) = Some(v);
+        self
+      }
+    )
+  }
+
+
+  fn impl_from_builder(&self) -> anyhow::Result<rust::Tokens> {
+    let ds_core = &self.dynsys_core;
+    Ok(quote!(
+      impl<'a, ST: $(ds_core)::DefaultSystemStrorage> From<BlockBuilder<'a, ST>> for $(&self.block_def.name)<'a> {
+        fn from(builder: BlockBuilder<'a, ST>) -> Self {
           $(&self.block_def.name) {
             $(if !self.block_def.parameters.is_empty() =>
               $(for field in &self.block_def.parameters join (,$['\r']) => 
-                $(self.init_field(&field.name, &FieldKind::Parameter, &field.default))
+                $(self.init_field(&field.name, &FieldKind::Parameter, &format!("builder.val_{}", field.name)))
               ),
             )
     
@@ -157,31 +255,34 @@ impl<'a> BlockAutoGenerator<'a> {
                 $(self.init_input(&field.name))
               ),
             )
+
             $(if !self.block_def.outputs.is_empty() =>    
               $(for field in &self.block_def.outputs join (,$['\r']) => 
-                $(self.init_field(&field.name, &FieldKind::Output, &field.default))
+                $(self.init_field(&field.name, &FieldKind::Output, &field.default.as_text()))
               ),
             )
       
             $(if !self.block_def.discrete_states.is_empty() =>
               $(for field in &self.block_def.discrete_states join (,$['\r']) => 
-                $(self.init_field(&field.name, &FieldKind::DiscreteState, &field.initial))
-              )
+                $(self.init_field(&field.name, &FieldKind::DiscreteState, &field.initial.as_text()))
+              ),
             )
+            
+            $(if !self.block_def.peripherals.is_empty() =>
+              $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
+                $(&peripheral.name): builder.periph_$(&peripheral.name).unwrap()
+              ),
+            )
+
           }
         }
-
-        pub fn builder<ST: $(ds_core)::DefaultSystemStrorage>(
-          builder: &mut $(ds_core)::SystemStorageBuilder<'a, ST>
-        ) -> BlockBuilder<'a> {
-          BlockBuilder { component: Self::new(builder) }
-        }
-      }
+      }         
     ))
-
   }
+      
 
-  fn init_field(&self, name: &str, kind: &FieldKind, value: &FieldValue) -> rust::Tokens {
+
+  fn init_field(&self, name: &str, kind: &FieldKind, value_source: &str) -> rust::Tokens {
     let method = match kind {
       FieldKind::Parameter => "create_param",
       // Not used
@@ -191,45 +292,13 @@ impl<'a> BlockAutoGenerator<'a> {
       FieldKind::ContinuousState => "create_continuous_state",
     };
     quote!(
-      $(name): builder.$(method)($(value.as_text()))
+      $(name): builder.__storage_builder.$(method)($(value_source))
     )
   }
 
   fn init_input(&self, name: &str) -> rust::Tokens {
     quote!(
-      $(name): builder.create_input()
-    )
-  }
-
-
-  fn create_builder(&self) -> anyhow::Result<rust::Tokens> {
-    Ok(quote!(
-      pub struct BlockBuilder<'a> {
-        component: $(&self.block_def.name)<'a>
-      }
-
-      #[allow(dead_code)]
-      impl<'a> BlockBuilder<'a> {
-        $(for field in &self.block_def.parameters join ($['\r']) => 
-          $(self.create_field_setter(&field.name, &field.tpe))
-        )
-  
-      }
-
-      impl<'a> From<BlockBuilder<'a>> for $(&self.block_def.name)<'a> {
-        fn from(x: BlockBuilder<'a>) -> Self {
-          x.component
-        }
-      }   
-    ))
-  }
-
-  fn create_field_setter(&self, name: &str, tpe: &FieldType) -> rust::Tokens {
-    quote!(
-      pub fn $(name)(mut self, v: $(&self.dynsys_core)::$(tpe.to_string())) -> Self {
-        self.component.$(name).reset(v);
-        self
-      }
+      $(name): builder.__storage_builder.create_input()
     )
   }
 
@@ -286,6 +355,10 @@ impl<'a> CodeGenerator for BlockAutoGenerator<'a> {
 
       $(self.create_builder()?)
 
+      $(self.impl_builder()?)
+
+      $(self.impl_from_builder()?)
+
       $(self.impl_has_storage()?)
     ))
   }
@@ -341,14 +414,14 @@ impl<'a> CodeGenerator for BlockImplGenerator<'a> {
 /// ==============================
 pub struct ModFileGenerator {
   block_files: Vec<(String, String)>,
-  dynsys_core: rust::Import,
+  // dynsys_core: rust::Import,
 }
 
 impl ModFileGenerator {
   pub fn new<C: Iterator<Item = (String, String)>>(block_files: C) -> ModFileGenerator {
     ModFileGenerator {
       block_files: block_files.collect(),
-      dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
+      // dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
     }
   }
 }
@@ -359,10 +432,10 @@ impl CodeGenerator for ModFileGenerator {
 
     Ok(quote!(
       $(for (file, block) in &self.block_files => 
-        mod $(file)blck_auto;
-        mod $(file)blck_impl;
+        mod $(file)auto;
+        mod $(file)impl;
 
-        pub use $(file)blck_auto::$(block);
+        pub use $(file)auto::$(block);
       )
     ))
   }

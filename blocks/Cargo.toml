@@ -9,7 +9,18 @@ edition = "2021"
 flowmbed_dynsys = {path = "../dynsys/"}
 anyhow = {version = "1", features = ["backtrace"]}
 
+# HAL
+embedded-hal = "=1.0.0-alpha.9"
+embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
+
+# configuration macro
+cfg-if = "1.0"
+# fallback virtual hal
+esp32-virtual-hal = {path = "../esp32-virtual-hal"}
+# logging
+simple_logger = "4.0"
+
+
 [dev-dependencies]
 const-default = "1.0"
-
 

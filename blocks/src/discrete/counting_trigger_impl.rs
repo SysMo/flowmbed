@@ -1,15 +1,15 @@
 use flowmbed_dynsys::core as dscore;
 
-use super::counting_trigger_blck_auto::*;
+use super::counting_trigger_auto::*;
 
 #[doc=" Implementation"]
+#[allow(unused_variables)]
 impl<'a> dscore::DynamicalSystem for CountingTrigger<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.current.initialize(*self.initial_state);
     self.output.initialize(*self.initial_state);
     self.counter.initialize(*self.initial_count);
-
     Ok(())
     // >>> End section @DynamicalSystem::init
   }
@@ -32,7 +32,6 @@ impl<'a> dscore::DynamicalSystem for CountingTrigger<'a> {
     }
 
     self.output.update(*self.current, ssi);
-
     Ok(())
     // >>> End section @DynamicalSystem::step
   }

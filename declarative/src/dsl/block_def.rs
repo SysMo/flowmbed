@@ -24,6 +24,8 @@ pub struct BlockDefinition {
   pub outputs: Vec<OutputDefinition>,
   #[serde(default)]
   pub discrete_states: Vec<DiscreteStateDefinition>,
+  #[serde(default)]
+  pub peripherals: Vec<PeripheralReference>,
 }
 
 type FieldDefinitionVec = Vec<FieldValue>;
@@ -143,4 +145,11 @@ impl TryFrom<FieldDef> for DiscreteStateDefinition {
       name, tpe, initial,
     })    
   }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PeripheralReference {
+  pub name: String,
+  pub direction: String,
+  pub protocol: String,
 }

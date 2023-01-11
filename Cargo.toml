@@ -4,7 +4,8 @@ members = [
   "declarative",
   "dynsys",  
   "esp32-virtual-hal",
-  "blocks"
+  "blocks",
+  "systems"
 ]
 
 exclude = [
