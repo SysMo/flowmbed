@@ -22,7 +22,8 @@ embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["u
 esp-idf-hal = "0.40"
 esp-idf-svc = { version = "0.45", features = ["std", "experimental"]}
 embedded-svc = "0.24"
-flowmbed_dynsys = {path = "../dynsys/", features = ["esp32"]}
+flowmbed_dynsys = {path = "../dynsys/"}
+flowmbed_core_blocks = {path = "../blocks/", features = ["esp32"]}
 
 anyhow = {version = "1", features = ["backtrace"]}
 # toml-cfg = "0.1"

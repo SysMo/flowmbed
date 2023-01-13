@@ -7,12 +7,14 @@ use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage
 use flowmbed_core_blocks::cfg_device;
 use flowmbed_core_blocks::hal::esp32_hal;
 
-#[doc = "Device LedEsp"]
+/// Device LedEsp
 struct LedEspPeripherals<'a> {
     led1: gpio::PinDriver::<'a, gpio::Gpio15, gpio::Output>,
     led2: gpio::PinDriver::<'a, gpio::Gpio2, gpio::Output>,
     led3: gpio::PinDriver::<'a, gpio::Gpio4, gpio::Output>,
     led4: gpio::PinDriver::<'a, gpio::Gpio16, gpio::Output>,
+    led5: gpio::PinDriver::<'a, gpio::Gpio17, gpio::Output>,
+    led6: gpio::PinDriver::<'a, gpio::Gpio5, gpio::Output>,
 }
 
 impl<'a> LedEspPeripherals<'a> {
@@ -23,6 +25,8 @@ impl<'a> LedEspPeripherals<'a> {
             led2: gpio::PinDriver::output(device_peripherals.pins.gpio2).unwrap(),
             led3: gpio::PinDriver::output(device_peripherals.pins.gpio4).unwrap(),
             led4: gpio::PinDriver::output(device_peripherals.pins.gpio16).unwrap(),
+            led5: gpio::PinDriver::output(device_peripherals.pins.gpio17).unwrap(),
+            led6: gpio::PinDriver::output(device_peripherals.pins.gpio5).unwrap(),
         }
     }
 }
@@ -34,10 +38,14 @@ struct LedCircuit<'a> {
     trigger2: discrete::CountingTrigger<'a>,
     trigger3: discrete::CountingTrigger<'a>,
     trigger4: discrete::CountingTrigger<'a>,
+    trigger5: discrete::CountingTrigger<'a>,
+    trigger6: discrete::CountingTrigger<'a>,
     led1: hardware_sinks::DigitalOutput<'a>,
     led2: hardware_sinks::DigitalOutput<'a>,
     led3: hardware_sinks::DigitalOutput<'a>,
     led4: hardware_sinks::DigitalOutput<'a>,
+    led5: hardware_sinks::DigitalOutput<'a>,
+    led6: hardware_sinks::DigitalOutput<'a>,
 }
 
 /// Implement circuit structure
@@ -53,13 +61,17 @@ impl<'a> LedCircuit<'a> {
             source: {sources::SquareWaveSource
                 ::builder().period(0.1).build(&mut builder)},
             trigger1: {discrete::CountingTrigger
-                ::builder().initial_count(0).pulses_down(6).pulses_up(1).build(&mut builder)},
+                ::builder().pulses_down(6).initial_count(0).pulses_up(1).build(&mut builder)},
             trigger2: {discrete::CountingTrigger
                 ::builder().initial_count(0).pulses_up(2).pulses_down(5).build(&mut builder)},
             trigger3: {discrete::CountingTrigger
-                ::builder().pulses_down(4).initial_count(0).pulses_up(3).build(&mut builder)},
+                ::builder().pulses_up(3).initial_count(0).pulses_down(4).build(&mut builder)},
             trigger4: {discrete::CountingTrigger
-                ::builder().pulses_up(4).initial_count(0).pulses_down(3).build(&mut builder)},
+                ::builder().initial_count(0).pulses_up(4).pulses_down(3).build(&mut builder)},
+            trigger5: {discrete::CountingTrigger
+                ::builder().pulses_up(5).initial_count(0).pulses_down(2).build(&mut builder)},
+            trigger6: {discrete::CountingTrigger
+                ::builder().initial_count(0).pulses_down(1).pulses_up(6).build(&mut builder)},
             led1: {hardware_sinks::DigitalOutput
                 ::builder().out(&mut peripherals.led1).build(&mut builder)},
             led2: {hardware_sinks::DigitalOutput
@@ -68,6 +80,10 @@ impl<'a> LedCircuit<'a> {
                 ::builder().out(&mut peripherals.led3).build(&mut builder)},
             led4: {hardware_sinks::DigitalOutput
                 ::builder().out(&mut peripherals.led4).build(&mut builder)},
+            led5: {hardware_sinks::DigitalOutput
+                ::builder().out(&mut peripherals.led5).build(&mut builder)},
+            led6: {hardware_sinks::DigitalOutput
+                ::builder().out(&mut peripherals.led6).build(&mut builder)},
         };
 
         circuit.connect()?;
@@ -87,6 +103,10 @@ impl<'a> DynamicalSystem for LedCircuit<'a> {
         self.led3.input.connect(&self.trigger3.output)?;
         self.trigger4.input.connect(&self.source.output)?;
         self.led4.input.connect(&self.trigger4.output)?;
+        self.trigger5.input.connect(&self.source.output)?;
+        self.led5.input.connect(&self.trigger5.output)?;
+        self.trigger6.input.connect(&self.source.output)?;
+        self.led6.input.connect(&self.trigger6.output)?;
         Ok(())
     }
 
@@ -96,10 +116,14 @@ impl<'a> DynamicalSystem for LedCircuit<'a> {
         self.trigger2.init()?;
         self.trigger3.init()?;
         self.trigger4.init()?;
+        self.trigger5.init()?;
+        self.trigger6.init()?;
         self.led1.init()?;
         self.led2.init()?;
         self.led3.init()?;
         self.led4.init()?;
+        self.led5.init()?;
+        self.led6.init()?;
         Ok(())
     }
 
@@ -109,10 +133,14 @@ impl<'a> DynamicalSystem for LedCircuit<'a> {
         self.trigger2.step(ssi)?;
         self.trigger3.step(ssi)?;
         self.trigger4.step(ssi)?;
+        self.trigger5.step(ssi)?;
+        self.trigger6.step(ssi)?;
         self.led1.step(ssi)?;
         self.led2.step(ssi)?;
         self.led3.step(ssi)?;
         self.led4.step(ssi)?;
+        self.led5.step(ssi)?;
+        self.led6.step(ssi)?;
         Ok(())
     }
 }
@@ -132,6 +160,10 @@ impl<'a> RequiresStorage for LedCircuit<'a> {
             .add(discrete::CountingTrigger::SIZE)
             .add(discrete::CountingTrigger::SIZE)
             .add(discrete::CountingTrigger::SIZE)
+            .add(discrete::CountingTrigger::SIZE)
+            .add(discrete::CountingTrigger::SIZE)
+            .add(hardware_sinks::DigitalOutput::SIZE)
+            .add(hardware_sinks::DigitalOutput::SIZE)
             .add(hardware_sinks::DigitalOutput::SIZE)
             .add(hardware_sinks::DigitalOutput::SIZE)
             .add(hardware_sinks::DigitalOutput::SIZE)

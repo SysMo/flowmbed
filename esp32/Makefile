@@ -1,8 +1,6 @@
 # SERIAL=/dev/ttyACM0
-SERIAL=/dev/ttyUSB0
-include credentials.vars
-# EXAMPLE=01_blink_gen
-EXAMPLE=02_pwm
+# SERIAL=/dev/ttyUSB0
+# include credentials.vars
 
 terminal/clear:
 	clear
@@ -25,12 +23,14 @@ deepclean:
 # flash:
 # 	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
-example/build: build/pre
-	cargo espflash save-image --example $(EXAMPLE) ESP32 program.bin
+example/build/%: build/pre
+	cargo espflash save-image --example $* ESP32 program.bin
 
-example/flash: build/pre
-	cargo espflash --example $(EXAMPLE) --release --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
-
+example/flash/%: build/pre
+	cargo espflash --example $* --release --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 monitor:
 	cargo espflash serial-monitor ${SERIAL}
+
+01_blink_gen/build:  example/build/01_blink_gen
+01_blink_gen/flash:  example/flash/01_blink_gen

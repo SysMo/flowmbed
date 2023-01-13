@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+esp32 = ["esp-idf-sys", "esp-idf-hal", "esp-idf-svc"]
+
 [dependencies]
 flowmbed_dynsys = {path = "../dynsys/"}
 anyhow = {version = "1", features = ["backtrace"]}
@@ -20,6 +23,10 @@ esp32-virtual-hal = {path = "../esp32-virtual-hal"}
 # logging
 simple_logger = "4.0"
 
+# device specific dependencies
+esp-idf-sys = { version = "0.32", optional = true }
+esp-idf-hal = {version = "0.40", optional = true}
+esp-idf-svc = { version = "0.45", optional = true, features = ["std", "experimental"]}
 
 [dev-dependencies]
 const-default = "1.0"

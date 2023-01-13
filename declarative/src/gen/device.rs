@@ -4,7 +4,7 @@ use crate::dsl::device::{
 };
 use super::traits::CodeGenerator;
 use genco::prelude::{rust, quote};
-
+use super::comments::{Comment, DocComment};
 use super::devices::esp32::ESP32PeripheryGenerator;
 
 pub struct DeviceGenerator<'a> {
@@ -30,7 +30,7 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
     let device_var = "device_peripherals";
 
     Ok(quote! {
-      #[doc = $(format!("\"Device {}\"", self.device.id))]$['\r']
+      $(DocComment([format!("Device {}", self.device.id)]))$['\r']
       struct $(peripherals_type)<'a> {$['\r']
         $(for peripheral in &self.device.peripherals => 
           $(&peripheral.id): $(peripheral_gen.generate_declare(&peripheral)?),$['\r']
