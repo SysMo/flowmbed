@@ -1,8 +1,9 @@
+use super::{DefaultSystemStrorage, SystemStorageBuilder};
+
 pub struct SystemStateInfo {
   pub t: f64,
   // pub event: bool
 }
-
 
 pub trait DynamicalSystem {
   fn connect(&mut self) -> anyhow::Result<()> { Ok(()) }

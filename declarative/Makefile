@@ -20,6 +20,7 @@ examples/core_blocks: build/pre gen_blocks/blocks
 
 
 examples/01_blink: build/pre gen_system/systems/examples/01_blink
+	$(SETENV) && cd ../systems && cargo run --example 01_blink_gen
 
 
 

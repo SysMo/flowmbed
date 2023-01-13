@@ -24,5 +24,5 @@ pub struct BlockInstance {
   #[serde(default)]
   pub parameters: HashMap<String, FieldValue>,
   #[serde(default)]
-  pub peripherals: Vec<PeripheralRef>
+  pub peripherals: HashMap<String, String>
 }

@@ -1,10 +1,12 @@
 use std::fs;
 use crate::dsl::system::SystemConfig;
 use genco::prelude::{rust, quote};
+use super::resolver::{NameResolver, NameResolverImpl};
 use super::traits::CodeGenerator;
 use super::device::DeviceGenerator;
 use super::circuit::CircuitGenerator;
 use super::task::TaskGenerator;
+use super::comments::Comment;
 
 /// Generates code for the MCU system
 pub struct SystemGenerator {
@@ -43,18 +45,20 @@ impl SystemGenerator {
 
 impl CodeGenerator for SystemGenerator {
   fn generate(&self) -> anyhow::Result<rust::Tokens> {
+    let name_resolver: &dyn NameResolver = &NameResolverImpl::new(&self.system.imports);
+
     let device_gen = self.system.devices.iter()
       .map(DeviceGenerator::new);
 
     let circuit_gen = self.system.circuits.iter()
-      .map(CircuitGenerator::new);
+      .map(|c| CircuitGenerator::new(c, name_resolver));
 
     let task_gen = self.system.tasks.iter()
     .map(TaskGenerator::new);
     
     let tokens = quote! {
-      use flowmbed_dynsys::cfg_device;
-      use flowmbed_dynsys::block_library::hal::esp32_hal;
+      use flowmbed_core_blocks::cfg_device;
+      use flowmbed_core_blocks::hal::esp32_hal;
 
       $(for gen in device_gen =>        
         $(gen.generate()?)$['\n']
@@ -69,9 +73,9 @@ impl CodeGenerator for SystemGenerator {
       )
 
       fn main() -> anyhow::Result<()> {
-        ///Configure logging
+        $(Comment(["Configure logging"]))
         cfg_device::config_logger();
-        ///Start the main task
+        $(Comment(["Start the main task"]))
         MainTask::run()?;
 
         Ok(())

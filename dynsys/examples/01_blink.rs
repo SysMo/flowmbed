@@ -8,7 +8,7 @@ use flowmbed_dynsys::core::{
   FixedStepRunner, FixedStepRunSettings, SystemRunner
 };
 use flowmbed_dynsys::block_library::{
-  hal::{IOutputPin, esp32_hal},
+  hal::{OutputPin, esp32_hal},
   sources::SquareSource,
   hardware_sinks::{DigitalOutput},
   discrete::CountingTrigger,

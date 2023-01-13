@@ -1,8 +1,10 @@
 ---
 imports:
-  - flowmbed_core_blocks::sources: sources
-  - flowmbed_core_blocks::discrete: discrete
-  - flowmbed_core_blocks::hardware_sinks: hardware_sinks
+  - package: flowmbed_core_blocks
+    paths:
+      - sources
+      - discrete
+      - hardware_sinks
 
 devices:
   - id: LedEsp
@@ -65,22 +67,22 @@ circuits:
       - id: led1
         kind: hardware_sinks::DigitalOutput
         peripherals:
-          - led1
+          out: led1
 
       - id: led2
         kind: hardware_sinks::DigitalOutput
         peripherals:
-          - led2
+          out: led2
 
       - id: led3
         kind: hardware_sinks::DigitalOutput
         peripherals:
-          - led3
+          out: led3
 
       - id: led4
         kind: hardware_sinks::DigitalOutput
         peripherals:
-          - led4
+          out: led4
 
     connections:
       - trigger1.input: source.output

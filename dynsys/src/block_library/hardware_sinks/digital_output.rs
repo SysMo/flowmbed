@@ -13,14 +13,14 @@ pub struct DigitalOutput<'a> {
   pub input: Input<'a, bool>,
   pub current: DiscreteState<'a, bool>,
   // Hardware Output
-  out: hal::IOutputPin<'a>,
+  out: hal::OutputPin<'a>,
 }
 
 impl<'a> DigitalOutput<'a>
 {
   pub fn new<ST: DefaultSystemStrorage>(
     builder: &mut SystemStorageBuilder<'a, ST>,
-    out: hal::IOutputPin<'a>,
+    out: hal::OutputPin<'a>,
   ) -> DigitalOutput<'a> {
     DigitalOutput {
       input: builder.create_input(), 

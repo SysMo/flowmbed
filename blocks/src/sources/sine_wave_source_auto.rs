@@ -1,24 +1,22 @@
 use flowmbed_dynsys::core as dscore;
 
-#[doc=" Declare the block struct"]
+/// Declare the block struct
 #[allow(dead_code)]
 pub struct SineWaveSource<'a> {
-  pub period: dscore::Parameter<'a, dscore::Float>,
-  pub phase: dscore::Parameter<'a, dscore::Float>,
-  pub amplitude: dscore::Parameter<'a, dscore::Float>,
+  pub period: dscore::Parameter<'a, f64>,
+  pub phase: dscore::Parameter<'a, f64>,
+  pub amplitude: dscore::Parameter<'a, f64>,
 
-  pub output: dscore::Output<'a, dscore::Float>,
+  pub output: dscore::Output<'a, f64>,
 }
 
-#[doc=" Implement the block struct"]
+/// Implement the block struct
 #[allow(dead_code)]
 impl<'a> SineWaveSource<'a> {
 
-  pub fn builder<ST: dscore::DefaultSystemStrorage>(
-    storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>
-  ) -> BlockBuilder<'a, ST> {
-    BlockBuilder {
-      __storage_builder: storage_builder,
+  pub fn builder() -> Builder<'a> {
+    Builder {
+      __phantom: std::marker::PhantomData,
       val_period: 1e0,
       val_phase: 0e0,
       val_amplitude: 1e0,
@@ -26,37 +24,37 @@ impl<'a> SineWaveSource<'a> {
   }
 }
 
-pub struct BlockBuilder<'a, ST: dscore::DefaultSystemStrorage> {
-  __storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>,
-  val_period: dscore::Float,
-  val_phase: dscore::Float,
-  val_amplitude: dscore::Float,
+pub struct Builder<'a> {
+  __phantom: std::marker::PhantomData<&'a i32>,
+  val_period: f64,
+  val_phase: f64,
+  val_amplitude: f64,
 }
 
 #[allow(dead_code)]
-impl<'a, ST: dscore::DefaultSystemStrorage> BlockBuilder<'a, ST> {
-  pub fn period(mut self, v: dscore::Float) -> Self {
+impl<'a> Builder<'a> {
+  pub fn period(mut self, v: f64) -> Self {
     self.val_period = v;
     self
   }
-  pub fn phase(mut self, v: dscore::Float) -> Self {
+  pub fn phase(mut self, v: f64) -> Self {
     self.val_phase = v;
     self
   }
-  pub fn amplitude(mut self, v: dscore::Float) -> Self {
+  pub fn amplitude(mut self, v: f64) -> Self {
     self.val_amplitude = v;
     self
   }
 }
 
-impl<'a, ST: dscore::DefaultSystemStrorage> From<BlockBuilder<'a, ST>> for SineWaveSource<'a> {
-  fn from(builder: BlockBuilder<'a, ST>) -> Self {
+impl<'a> dscore::BlockBuilder<'a, SineWaveSource<'a>> for Builder<'a> {
+  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> SineWaveSource<'a> {
     SineWaveSource {
-      period: builder.__storage_builder.create_param(builder.val_period),
-      phase: builder.__storage_builder.create_param(builder.val_phase),
-      amplitude: builder.__storage_builder.create_param(builder.val_amplitude),
+      period: storage_builder.create_param(self.val_period),
+      phase: storage_builder.create_param(self.val_phase),
+      amplitude: storage_builder.create_param(self.val_amplitude),
 
-      output: builder.__storage_builder.create_output(0e0),
+      output: storage_builder.create_output(0e0),
 
     }
   }

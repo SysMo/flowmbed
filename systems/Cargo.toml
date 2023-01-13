@@ -7,5 +7,10 @@ edition = "2021"
 
 [dependencies]
 simple_logger = "4.0"
+flowmbed_dynsys = {path = "../dynsys/"}
+flowmbed_core_blocks = {path = "../blocks/"}
+const-default = "1.0"
+anyhow = {version = "1", features = ["backtrace"]}
+
 
 [dev-dependencies]

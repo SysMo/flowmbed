@@ -1,27 +1,25 @@
 use flowmbed_dynsys::core as dscore;
 
-#[doc=" Declare the block struct"]
+/// Declare the block struct
 #[allow(dead_code)]
 pub struct SquareWaveSource<'a> {
-  pub period: dscore::Parameter<'a, dscore::Float>,
-  pub duty: dscore::Parameter<'a, dscore::Float>,
-  pub initial: dscore::Parameter<'a, dscore::Bool>,
+  pub period: dscore::Parameter<'a, f64>,
+  pub duty: dscore::Parameter<'a, f64>,
+  pub initial: dscore::Parameter<'a, bool>,
 
-  pub output: dscore::Output<'a, dscore::Bool>,
+  pub output: dscore::Output<'a, bool>,
 
-  pub current: dscore::DiscreteState<'a, dscore::Bool>,
-  pub last_change: dscore::DiscreteState<'a, dscore::Float>,
+  pub current: dscore::DiscreteState<'a, bool>,
+  pub last_change: dscore::DiscreteState<'a, f64>,
 }
 
-#[doc=" Implement the block struct"]
+/// Implement the block struct
 #[allow(dead_code)]
 impl<'a> SquareWaveSource<'a> {
 
-  pub fn builder<ST: dscore::DefaultSystemStrorage>(
-    storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>
-  ) -> BlockBuilder<'a, ST> {
-    BlockBuilder {
-      __storage_builder: storage_builder,
+  pub fn builder() -> Builder<'a> {
+    Builder {
+      __phantom: std::marker::PhantomData,
       val_period: 1e0,
       val_duty: 5e-1,
       val_initial: false,
@@ -29,40 +27,40 @@ impl<'a> SquareWaveSource<'a> {
   }
 }
 
-pub struct BlockBuilder<'a, ST: dscore::DefaultSystemStrorage> {
-  __storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>,
-  val_period: dscore::Float,
-  val_duty: dscore::Float,
-  val_initial: dscore::Bool,
+pub struct Builder<'a> {
+  __phantom: std::marker::PhantomData<&'a i32>,
+  val_period: f64,
+  val_duty: f64,
+  val_initial: bool,
 }
 
 #[allow(dead_code)]
-impl<'a, ST: dscore::DefaultSystemStrorage> BlockBuilder<'a, ST> {
-  pub fn period(mut self, v: dscore::Float) -> Self {
+impl<'a> Builder<'a> {
+  pub fn period(mut self, v: f64) -> Self {
     self.val_period = v;
     self
   }
-  pub fn duty(mut self, v: dscore::Float) -> Self {
+  pub fn duty(mut self, v: f64) -> Self {
     self.val_duty = v;
     self
   }
-  pub fn initial(mut self, v: dscore::Bool) -> Self {
+  pub fn initial(mut self, v: bool) -> Self {
     self.val_initial = v;
     self
   }
 }
 
-impl<'a, ST: dscore::DefaultSystemStrorage> From<BlockBuilder<'a, ST>> for SquareWaveSource<'a> {
-  fn from(builder: BlockBuilder<'a, ST>) -> Self {
+impl<'a> dscore::BlockBuilder<'a, SquareWaveSource<'a>> for Builder<'a> {
+  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> SquareWaveSource<'a> {
     SquareWaveSource {
-      period: builder.__storage_builder.create_param(builder.val_period),
-      duty: builder.__storage_builder.create_param(builder.val_duty),
-      initial: builder.__storage_builder.create_param(builder.val_initial),
+      period: storage_builder.create_param(self.val_period),
+      duty: storage_builder.create_param(self.val_duty),
+      initial: storage_builder.create_param(self.val_initial),
 
-      output: builder.__storage_builder.create_output(false),
+      output: storage_builder.create_output(false),
 
-      current: builder.__storage_builder.create_discrete_state(false),
-      last_change: builder.__storage_builder.create_discrete_state(0e0),
+      current: storage_builder.create_discrete_state(false),
+      last_change: storage_builder.create_discrete_state(0e0),
 
     }
   }

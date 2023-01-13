@@ -1,37 +1,35 @@
 use flowmbed_dynsys::core as dscore;
 
-#[doc=" Declare the block struct"]
+/// Declare the block struct
 #[allow(dead_code)]
 pub struct DigitalOutput<'a> {
 
-  pub input: dscore::Input<'a, dscore::Bool>,
+  pub input: dscore::Input<'a, bool>,
 
-  pub current: dscore::DiscreteState<'a, dscore::Bool>,
+  pub current: dscore::DiscreteState<'a, bool>,
 
   pub out: crate::hal::OutputPin<'a>,
 }
 
-#[doc=" Implement the block struct"]
+/// Implement the block struct
 #[allow(dead_code)]
 impl<'a> DigitalOutput<'a> {
 
-  pub fn builder<ST: dscore::DefaultSystemStrorage>(
-    storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>
-  ) -> BlockBuilder<'a, ST> {
-    BlockBuilder {
-      __storage_builder: storage_builder,
+  pub fn builder() -> Builder<'a> {
+    Builder {
+      __phantom: std::marker::PhantomData,
       periph_out: None,
     }
   }
 }
 
-pub struct BlockBuilder<'a, ST: dscore::DefaultSystemStrorage> {
-  __storage_builder: &'a mut dscore::SystemStorageBuilder<'a, ST>,
+pub struct Builder<'a> {
+  __phantom: std::marker::PhantomData<&'a i32>,
   periph_out: Option<crate::hal::OutputPin<'a>>,
 }
 
 #[allow(dead_code)]
-impl<'a, ST: dscore::DefaultSystemStrorage> BlockBuilder<'a, ST> {
+impl<'a> Builder<'a> {
 
   pub fn out(mut self, v: crate::hal::OutputPin<'a>) -> Self {
     self.periph_out = Some(v);
@@ -39,15 +37,15 @@ impl<'a, ST: dscore::DefaultSystemStrorage> BlockBuilder<'a, ST> {
   }
 }
 
-impl<'a, ST: dscore::DefaultSystemStrorage> From<BlockBuilder<'a, ST>> for DigitalOutput<'a> {
-  fn from(builder: BlockBuilder<'a, ST>) -> Self {
+impl<'a> dscore::BlockBuilder<'a, DigitalOutput<'a>> for Builder<'a> {
+  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> DigitalOutput<'a> {
     DigitalOutput {
 
-      input: builder.__storage_builder.create_input(),
+      input: storage_builder.create_input(),
 
-      current: builder.__storage_builder.create_discrete_state(false),
+      current: storage_builder.create_discrete_state(false),
 
-      out: builder.periph_out.unwrap(),
+      out: self.periph_out.unwrap(),
 
     }
   }

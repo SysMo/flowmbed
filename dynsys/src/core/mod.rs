@@ -7,7 +7,7 @@ pub mod system_runner;
 pub mod peripheral;
 
 pub use variables::{Parameter, Input, Output, DiscreteState};
-pub use block::Block;
+pub use block::{Block, BlockBuilder};
 pub use system_storage::{
   DefaultSystemStrorage, StorageSize, SystemStorageBuilder,
   RequiresStorage
@@ -17,7 +17,7 @@ pub use system::{SystemStateInfo, DynamicalSystem};
 pub use system_runner::{SystemRunner, FixedStepRunner, FixedStepRunSettings};
 pub use peripheral::RequirePeripherals;
 
-pub type Int = i64;
-pub type Bool = bool;
-pub type Float = f64;
+pub use i64 as Int;
+pub use bool as  Bool;
+pub use f64 as Float;
 pub use String;

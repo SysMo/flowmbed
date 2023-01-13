@@ -1,7 +1,6 @@
 pub mod traits;
-
+pub mod resolver;
 pub mod block_def;
-
 pub mod device;
 pub mod circuit;
 pub mod task;

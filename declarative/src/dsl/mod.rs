@@ -1,3 +1,4 @@
+pub mod references;
 pub mod device;
 pub mod block_instance;
 pub mod circuit;
