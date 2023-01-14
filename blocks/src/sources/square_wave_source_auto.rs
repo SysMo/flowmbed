@@ -16,7 +16,6 @@ pub struct SquareWaveSource<'a> {
 /// Implement the block struct
 #[allow(dead_code)]
 impl<'a> SquareWaveSource<'a> {
-
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
@@ -28,7 +27,7 @@ impl<'a> SquareWaveSource<'a> {
 }
 
 pub struct Builder<'a> {
-  __phantom: std::marker::PhantomData<&'a i32>,
+  __phantom: std::marker::PhantomData<&'a ()>,
   val_period: f64,
   val_duty: f64,
   val_initial: bool,

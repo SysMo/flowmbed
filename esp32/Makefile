@@ -24,13 +24,16 @@ deepclean:
 # 	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 example/build/%: build/pre
-	cargo espflash save-image --example $* ESP32 program.bin
+	cargo espflash save-image --release --example $* ESP32 program.bin
 
 example/flash/%: build/pre
-	cargo espflash --example $* --release --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+	cargo espflash --release --example $* --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 monitor:
 	cargo espflash serial-monitor ${SERIAL}
 
 01_blink_gen/build:  example/build/01_blink_gen
 01_blink_gen/flash:  example/flash/01_blink_gen
+
+02_blink_pwm_gen/build:  example/build/02_blink_pwm_gen
+02_blink_pwm_gen/flash:  example/flash/02_blink_pwm_gen

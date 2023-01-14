@@ -2,7 +2,7 @@ use flowmbed_dynsys::core as dscore;
 
 use super::sine_wave_source_auto::*;
 
-#[doc=" Implementation"]
+/// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
 impl<'a> dscore::DynamicalSystem for SineWaveSource<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
@@ -29,10 +29,15 @@ impl<'a> dscore::DynamicalSystem for SineWaveSource<'a> {
 use std::f64::consts::PI;
 struct Helpers;
 impl Helpers {
-
   pub fn compute_output(block: &SineWaveSource, t: f64) -> f64 {
     let x: f64 = (t / *block.period + *block.phase) * 2.0 * PI;
-    *block.amplitude * x.sin()
+    let out = *block.amplitude * x.sin() + *block.offset;
+    out
   }
+
+  // pub fn debug(block: &SineWaveSource,  t: f64) {
+  //   use log::*;
+  //   log::info!("t = {:4e} period = {}, phase = {}, amplitude = {}, offset = {}", t, *block.period, *block.phase, *block.amplitude, *block.offset);
+  // }
 }
 // >>> End section @Helpers

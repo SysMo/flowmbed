@@ -1,6 +1,9 @@
 pub mod peripheral;
 pub mod gpio;
+pub mod ledc;
 pub mod peripherals;
+
+pub type HalError = anyhow::Error;
 
 #[allow(unused_macros)]
 macro_rules! into_ref {

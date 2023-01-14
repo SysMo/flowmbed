@@ -7,12 +7,12 @@ pub struct Peripherals {
 static mut TAKEN: bool = false;
 
 impl Peripherals {
-  pub fn take() -> anyhow::Result<Self> {
+  pub fn take() -> Option<Self> {
     if unsafe { TAKEN } {
-      anyhow::bail!("Peripherals already taken")
+      None
     } else {
       unsafe { TAKEN = true };
-      Ok(unsafe { Peripherals::new() })
+      Some(unsafe { Peripherals::new() })
     }
   }
 

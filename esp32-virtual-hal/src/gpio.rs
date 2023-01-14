@@ -2,8 +2,7 @@ use embedded_hal::digital;
 use log::*; 
 use std::marker::PhantomData;
 use super::peripheral::{Peripheral, PeripheralRef};
-
-type HalError = anyhow::Error;
+use crate::HalError;
 
 pub trait Pin: Peripheral<P = Self> + Sized + Send + 'static {
   fn pin(&self) -> i32;

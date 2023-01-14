@@ -21,7 +21,6 @@ pub struct CountingTrigger<'a> {
 /// Implement the block struct
 #[allow(dead_code)]
 impl<'a> CountingTrigger<'a> {
-
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
@@ -35,7 +34,7 @@ impl<'a> CountingTrigger<'a> {
 }
 
 pub struct Builder<'a> {
-  __phantom: std::marker::PhantomData<&'a i32>,
+  __phantom: std::marker::PhantomData<&'a ()>,
   val_pulses_up: i64,
   val_pulses_down: i64,
   val_initial_state: bool,

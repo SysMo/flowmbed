@@ -89,9 +89,9 @@ heap_storage_impl_all!(DiscreteState, f64, r_dstate);
 heap_storage_impl_all!(DiscreteState, bool, b_dstate);
 heap_storage_impl_all!(DiscreteState, i64, i_dstate);
 
-heap_storage_impl_all!(Output, f64, r_param);
-heap_storage_impl_all!(Output, bool, b_param);
-heap_storage_impl_all!(Output, i64, i_param);
+heap_storage_impl_all!(Output, f64, r_out);
+heap_storage_impl_all!(Output, bool, b_out);
+heap_storage_impl_all!(Output, i64, i_out);
 
 // heap_storage_impl_all!(ContinuousState<'a, f64>, f64, r_state);
 // heap_storage_impl_access!(ContinuousStateDerivative<'a, f64>, f64, r_state_der);

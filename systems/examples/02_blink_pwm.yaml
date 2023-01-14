@@ -1,0 +1,88 @@
+---
+
+imports:
+  - package: flowmbed_core_blocks
+    paths:
+      - sources
+      - hardware_sinks
+
+devices:
+  - id: LedEsp
+    kind: esp32
+    peripherals:
+      - id: led1
+        conf:
+          !PWMOutput
+            pin: 15
+            channel: channel0
+            timer: timer0
+            freq: 1
+      
+      - id: led2
+        conf:
+          !PWMOutput
+            pin: 2
+            channel: channel1
+            timer: timer1
+            freq: 1
+
+      - id: led3
+        conf:
+          !PWMOutput
+            pin: 4
+            channel: channel2
+            timer: timer2
+            freq: 1
+circuits:
+  - id: LedCircuit
+    device: LedEsp
+    blocks:
+      - id: source1
+        kind: sources::SineWaveSource
+        parameters:
+          period: 1.1
+          amplitude: 0.5
+          offset: 0.5
+
+      - id: source2
+        kind: sources::SineWaveSource
+        parameters:
+          period: 2.2
+          amplitude: 0.5
+          offset: 0.5
+
+      - id: source3
+        kind: sources::SineWaveSource
+        parameters:
+          period: 4.4
+          amplitude: 0.5
+          offset: 0.5
+
+      - id: pwm1
+        kind: hardware_sinks::PWMOutput
+        peripherals:
+          out: led1
+
+      - id: pwm2
+        kind: hardware_sinks::PWMOutput
+        peripherals:
+          out: led2
+
+      - id: pwm3
+        kind: hardware_sinks::PWMOutput
+        peripherals:
+          out: led3
+
+    connections:
+      - pwm1.duty: source1.output
+      - pwm2.duty: source2.output
+      - pwm3.duty: source3.output
+
+
+tasks:
+  - !FixedStepTask
+      id: MainTask
+      circuit: LedCircuit
+      t_step: 0.01
+      speedup: 1.0
+  

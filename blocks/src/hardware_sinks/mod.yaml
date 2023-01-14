@@ -11,3 +11,10 @@ blocks:
         direction: Out
         protocol: crate::hal::OutputPin
 
+  - name: PWMOutput
+    inputs:
+      - duty: [Float]
+    peripherals:
+      - name: out
+        direction: Out
+        protocol: crate::hal::PwmPin

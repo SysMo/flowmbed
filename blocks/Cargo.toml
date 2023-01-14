@@ -21,6 +21,7 @@ cfg-if = "1.0"
 # fallback virtual hal
 esp32-virtual-hal = {path = "../esp32-virtual-hal"}
 # logging
+log = "0.4"
 simple_logger = "4.0"
 
 # device specific dependencies

@@ -49,7 +49,7 @@ impl<'a> CodeGenerator for FixedStepTaskGenerator<'a> {
 
             type PeripheralsStruct<'a> = <$(ciruit_type)<'a> as RequirePeripherals>::PeripheralsStruct;
             let storage = $(&self.fds_core)::HeapSystemStorage::new($(ciruit_type)::SIZE);
-            let mut peripherals = PeripheralsStruct::new();
+            let mut peripherals = PeripheralsStruct::new()?;
             let mut circuit = $(ciruit_type)::new(&storage, &mut peripherals)?;
 
             let run_settings = $(&self.fds_core)::FixedStepRunSettings {

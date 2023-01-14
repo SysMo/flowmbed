@@ -14,7 +14,6 @@ pub struct DigitalOutput<'a> {
 /// Implement the block struct
 #[allow(dead_code)]
 impl<'a> DigitalOutput<'a> {
-
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
@@ -24,7 +23,7 @@ impl<'a> DigitalOutput<'a> {
 }
 
 pub struct Builder<'a> {
-  __phantom: std::marker::PhantomData<&'a i32>,
+  __phantom: std::marker::PhantomData<&'a ()>,
   periph_out: Option<crate::hal::OutputPin<'a>>,
 }
 

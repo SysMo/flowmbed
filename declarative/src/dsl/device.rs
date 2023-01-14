@@ -24,9 +24,9 @@ pub struct PeripheralConfig {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum PeripheralConfigEnum {
   DigitalInput(DigitalInputConfig),
-  DigitalOutput(DigitalOutputConfig)
+  DigitalOutput(DigitalOutputConfig),
+  PWMOutput(PWMOutputConfig)
 }
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -39,6 +39,16 @@ pub struct DigitalOutputConfig {
 pub struct DigitalInputConfig {
   pub pin: u32
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PWMOutputConfig {
+  pub pin: u32,
+  pub channel: String,
+  pub timer: String,
+  pub freq: u64,  
+}
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PeripheralRef(pub String);

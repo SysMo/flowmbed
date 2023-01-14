@@ -34,3 +34,29 @@ where
         }
     }
 }
+
+
+pub struct BeginSection<T>(pub T);
+
+impl<T> tokens::FormatInto<Rust> for BeginSection<T>
+where
+    T: Into<tokens::ItemStr>,
+{
+    fn format_into(self, tokens: &mut Tokens<Rust>) {
+        tokens.push();
+        tokens.append(tokens::static_literal("// >>> Begin section @"));
+        tokens.append(self.0.into());
+}
+}
+
+pub struct EndSection<T>(pub T);
+impl<T> tokens::FormatInto<Rust> for EndSection<T>
+where
+    T: Into<tokens::ItemStr>,
+{
+    fn format_into(self, tokens: &mut Tokens<Rust>) {
+        tokens.push();
+        tokens.append(tokens::static_literal("// >>> End section @"));
+        tokens.append(self.0.into());
+    }
+}

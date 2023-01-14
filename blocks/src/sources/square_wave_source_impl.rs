@@ -2,7 +2,7 @@ use flowmbed_dynsys::core as dscore;
 
 use super::square_wave_source_auto::*;
 
-#[doc=" Implementation"]
+/// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
 impl<'a> dscore::DynamicalSystem for SquareWaveSource<'a> {
   fn init(&mut self) -> anyhow::Result<()> {

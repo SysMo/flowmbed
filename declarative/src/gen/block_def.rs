@@ -4,7 +4,7 @@ use genco::prelude::{rust, quote};
 use crate::dsl::{block_def::{BlockDefinition, BlockModule}, FieldType, FieldValue, FieldKind, StorageSize};
 use super::file_generator::FileGenerator;
 use super::traits::CodeGenerator;
-use super::comments::{Comment, DocComment};
+use super::comments::{Comment, DocComment, BeginSection, EndSection};
 
 use log::*;
 
@@ -163,18 +163,6 @@ impl<'a> BlockAutoGenerator<'a> {
       $(DocComment(["Implement the block struct"]))
       #[allow(dead_code)]
       impl<'a>  $(&self.block_def.name)<'a> {
-        // pub fn new<ST: $(ds_core)::DefaultSystemStrorage>(
-        //   builder: &mut $(ds_core)::SystemStorageBuilder<'a, ST>,
-        //   $(if !self.block_def.peripherals.is_empty() =>
-        //     $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
-        //       $(&peripheral.name): $(&peripheral.protocol)<'a>
-        //     ),
-        //   )
-      
-        // ) -> $(&self.block_def.name)<'a> {
-
-        // }
-
         pub fn builder() -> Builder<'a> {
           Builder {
             __phantom: std::marker::PhantomData,
@@ -197,7 +185,7 @@ impl<'a> BlockAutoGenerator<'a> {
     let ds_core = &self.dynsys_core;
     Ok(quote!(
       pub struct Builder<'a> {
-        __phantom: std::marker::PhantomData<&'a i32>,
+        __phantom: std::marker::PhantomData<&'a ()>,
         $(if !self.block_def.peripherals.is_empty() =>
           $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
             periph_$(&peripheral.name): Option<$(&peripheral.protocol)<'a>>,
@@ -397,21 +385,29 @@ impl<'a> CodeGenerator for BlockImplGenerator<'a> {
     Ok(quote!(
       use super::$(self.blck_auto_name)::*;
       
-      $(DocComment(["Implementat DynamicalSystem protocol"]))
+      $(DocComment(["Implementation DynamicalSystem protocol"]))
       #[allow(unused_variables)]
       impl<'a> $(ds_core)::DynamicalSystem for $(&self.block_def.name)<'a> {
         fn init(&mut self) -> anyhow::Result<()> {
-          $(Comment([">>> Begin section @DynamicalSystem::init"]))
+          $(BeginSection("DynamicalSystem::init"))
           Ok(())
-          $(Comment([">>> End section @DynamicalSystem::init"]))
+          $(EndSection("DynamicalSystem::init"))
         }
 
         fn step(&mut self, ssi: &$(ds_core)::SystemStateInfo) -> anyhow::Result<()> {
-          $(Comment([">>> Begin section @DynamicalSystem::step"]))
+          $(BeginSection("DynamicalSystem::step"))
           Ok(())
-          $(Comment([">>> End section @DynamicalSystem::step"]))
+          $(EndSection("DynamicalSystem::step"))
         }
       }
+
+      $(BeginSection("Begin section @Helpers"))
+      struct Aux;
+      impl Aux {
+
+
+      }
+      $(EndSection("Begin section @Helpers"))
     ))
   }
 }
@@ -428,21 +424,17 @@ impl ModFileGenerator {
   pub fn new<C: Iterator<Item = (String, String)>>(block_files: C) -> ModFileGenerator {
     ModFileGenerator {
       block_files: block_files.collect(),
-      // dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("dscore"),
     }
   }
 }
 
 impl CodeGenerator for ModFileGenerator {
   fn generate(&self) -> anyhow::Result<rust::Tokens> {
-    // let ds_core = &self.dynsys_core;
-
     Ok(quote!(
-      $(for (file, block) in &self.block_files => 
+      $(for (file, block) in &self.block_files join ($['\r']) => 
         mod $(file)auto;
         mod $(file)impl;
-
-        pub use $(file)auto::$(block);
+        pub use $(file)auto::$(block);$['\r']$['\r']
       )
     ))
   }

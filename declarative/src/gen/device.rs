@@ -27,24 +27,26 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
 
     let device_name = &self.device.id;
     let peripherals_type = &format!("{}Peripherals", device_name);
-    let device_var = "device_peripherals";
-
+    let device_var = "device_peripherals";    
     Ok(quote! {
+      $(peripheral_gen.generate_imports()?)
       $(DocComment([format!("Device {}", self.device.id)]))$['\r']
       struct $(peripherals_type)<'a> {$['\r']
+        __marker: std::marker::PhantomData<&'a ()>,
         $(for peripheral in &self.device.peripherals => 
           $(&peripheral.id): $(peripheral_gen.generate_declare(&peripheral)?),$['\r']
         )
       }
 
       impl<'a> $(peripherals_type)<'a> {
-        pub fn new() -> $(peripherals_type)<'a> {
+        pub fn new() -> anyhow::Result<$(peripherals_type)<'a>> {
           let $(device_var) = $(peripheral_gen.take_peripherals()?);
-          $(peripherals_type) {
+          Ok($(peripherals_type) {
+            __marker: std::marker::PhantomData,
             $(for peripheral in &self.device.peripherals => 
-              $(&peripheral.id): $(peripheral_gen.generate_initialize(&peripheral, device_var)?).unwrap(),$['\r']
+              $(&peripheral.id): $(peripheral_gen.generate_initialize(&peripheral, device_var)?)?,$['\r']
             )  
-          }
+          })
         }
       }
     })
@@ -54,6 +56,7 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
 
 pub trait PeripheryGenerator {
   fn take_peripherals(&self) -> anyhow::Result<rust::Tokens>;
+  fn generate_imports(&self) -> anyhow::Result<rust::Tokens>;
   fn generate_declare(&self, peripheral: &PeripheralConfig) -> anyhow::Result<rust::Tokens>;
   fn generate_initialize(&self, peripheral: &PeripheralConfig, device_var: &str) -> anyhow::Result<rust::Tokens>;
 }
