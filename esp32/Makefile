@@ -37,3 +37,6 @@ monitor:
 
 02_blink_pwm_gen/build:  example/build/02_blink_pwm_gen
 02_blink_pwm_gen/flash:  example/flash/02_blink_pwm_gen
+
+03_blink_pwm_gen/build:  example/build/03_blink_pwm_gen
+03_blink_pwm_gen/flash:  example/flash/03_blink_pwm_gen

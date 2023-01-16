@@ -7,8 +7,10 @@ use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage
 use flowmbed_core_blocks::cfg_device;
 use flowmbed_core_blocks::hal::esp32_hal;
 
+use esp_idf_hal::prelude::*;
 /// Device LedEsp
 struct LedEspPeripherals<'a> {
+    __marker: std::marker::PhantomData<&'a ()>,
     led1: gpio::PinDriver::<'a, gpio::Gpio15, gpio::Output>,
     led2: gpio::PinDriver::<'a, gpio::Gpio2, gpio::Output>,
     led3: gpio::PinDriver::<'a, gpio::Gpio4, gpio::Output>,
@@ -18,16 +20,20 @@ struct LedEspPeripherals<'a> {
 }
 
 impl<'a> LedEspPeripherals<'a> {
-    pub fn new() -> LedEspPeripherals<'a> {
-        let device_peripherals = Peripherals::take().unwrap();
-        LedEspPeripherals {
-            led1: gpio::PinDriver::output(device_peripherals.pins.gpio15).unwrap(),
-            led2: gpio::PinDriver::output(device_peripherals.pins.gpio2).unwrap(),
-            led3: gpio::PinDriver::output(device_peripherals.pins.gpio4).unwrap(),
-            led4: gpio::PinDriver::output(device_peripherals.pins.gpio16).unwrap(),
-            led5: gpio::PinDriver::output(device_peripherals.pins.gpio17).unwrap(),
-            led6: gpio::PinDriver::output(device_peripherals.pins.gpio5).unwrap(),
-        }
+    pub fn new() -> anyhow::Result<LedEspPeripherals<'a>> {
+        let device_peripherals = match Peripherals::take() {
+            Some(x) => x,
+            None => anyhow::bail!("Peripherals already taken!")
+        };
+        Ok(LedEspPeripherals {
+            __marker: std::marker::PhantomData,
+            led1: gpio::PinDriver::output(device_peripherals.pins.gpio15)?,
+            led2: gpio::PinDriver::output(device_peripherals.pins.gpio2)?,
+            led3: gpio::PinDriver::output(device_peripherals.pins.gpio4)?,
+            led4: gpio::PinDriver::output(device_peripherals.pins.gpio16)?,
+            led5: gpio::PinDriver::output(device_peripherals.pins.gpio17)?,
+            led6: gpio::PinDriver::output(device_peripherals.pins.gpio5)?,
+        })
     }
 }
 
@@ -65,13 +71,13 @@ impl<'a> LedCircuit<'a> {
             trigger2: {discrete::CountingTrigger
                 ::builder().initial_count(0).pulses_up(2).pulses_down(5).build(&mut builder)},
             trigger3: {discrete::CountingTrigger
-                ::builder().pulses_up(3).initial_count(0).pulses_down(4).build(&mut builder)},
+                ::builder().pulses_down(4).initial_count(0).pulses_up(3).build(&mut builder)},
             trigger4: {discrete::CountingTrigger
-                ::builder().initial_count(0).pulses_up(4).pulses_down(3).build(&mut builder)},
+                ::builder().pulses_up(4).initial_count(0).pulses_down(3).build(&mut builder)},
             trigger5: {discrete::CountingTrigger
-                ::builder().pulses_up(5).initial_count(0).pulses_down(2).build(&mut builder)},
+                ::builder().pulses_down(2).initial_count(0).pulses_up(5).build(&mut builder)},
             trigger6: {discrete::CountingTrigger
-                ::builder().initial_count(0).pulses_down(1).pulses_up(6).build(&mut builder)},
+                ::builder().initial_count(0).pulses_up(6).pulses_down(1).build(&mut builder)},
             led1: {hardware_sinks::DigitalOutput
                 ::builder().out(&mut peripherals.led1).build(&mut builder)},
             led2: {hardware_sinks::DigitalOutput
@@ -179,7 +185,7 @@ impl MainTask {
 
         type PeripheralsStruct<'a> = <LedCircuit<'a> as RequirePeripherals>::PeripheralsStruct;
         let storage = fds_core::HeapSystemStorage::new(LedCircuit::SIZE);
-        let mut peripherals = PeripheralsStruct::new();
+        let mut peripherals = PeripheralsStruct::new()?;
         let mut circuit = LedCircuit::new(&storage, &mut peripherals)?;
 
         let run_settings = fds_core::FixedStepRunSettings {

@@ -5,6 +5,7 @@ pub mod circuit;
 pub mod task;
 pub mod system;
 pub mod block_def;
+pub mod devices;
 
 use serde::{Serialize, Deserialize};
 use strum::{EnumString, Display};

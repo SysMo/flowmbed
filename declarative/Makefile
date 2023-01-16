@@ -25,6 +25,8 @@ examples/01_blink: build/pre gen_system/systems/examples/01_blink
 examples/02_blink_pwm: build/pre gen_system/systems/examples/02_blink_pwm
 	$(SETENV) && cd ../systems && cargo run --example 02_blink_pwm_gen
 
+examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
+	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
 
 

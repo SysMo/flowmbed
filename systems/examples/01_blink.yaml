@@ -8,32 +8,33 @@ imports:
 
 devices:
   - id: LedEsp
-    kind: esp32
-    peripherals:
-      - id: led1
-        conf:
-          !DigitalOutput
-            pin: 15
-      - id: led2
-        conf:
-          !DigitalOutput
-            pin: 2
-      - id: led3
-        conf:
-          !DigitalOutput
-            pin: 4
-      - id: led4
-        conf:
-          !DigitalOutput
-            pin: 16
-      - id: led5
-        conf:
-          !DigitalOutput
-            pin: 17
-      - id: led6
-        conf:
-          !DigitalOutput
-            pin: 5
+    config:
+      !ESP32
+        peripherals:
+          - id: led1
+            config:
+              !DigitalOutputPin
+                pin: 15
+          - id: led2
+            config:
+              !DigitalOutputPin
+                pin: 2
+          - id: led3
+            config:
+              !DigitalOutputPin
+                pin: 4
+          - id: led4
+            config:
+              !DigitalOutputPin
+                pin: 16
+          - id: led5
+            config:
+              !DigitalOutputPin
+                pin: 17
+          - id: led6
+            config:
+              !DigitalOutputPin
+                pin: 5
 
 circuits:
   - id: LedCircuit

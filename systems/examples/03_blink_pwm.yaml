@@ -8,31 +8,33 @@ imports:
 
 devices:
   - id: LedEsp
-    kind: esp32
-    peripherals:
-      - id: led1
-        conf:
-          !PWMOutput
-            pin: 15
-            channel: channel0
-            timer: timer0
-            freq: 1
-      
-      - id: led2
-        conf:
-          !PWMOutput
-            pin: 2
-            channel: channel1
-            timer: timer1
-            freq: 1
+    config:
+      !ESP32
+        peripherals:
+          - id: led1
+            config:
+              !PwmPin
+                pin: 15
+                channel: channel0
+                timer: timer0
+                freq: 1000
 
-      - id: led3
-        conf:
-          !PWMOutput
-            pin: 4
-            channel: channel2
-            timer: timer2
-            freq: 1
+          - id: led2
+            config:
+              !PwmPin
+                pin: 2
+                channel: channel1
+                timer: timer1
+                freq: 1000
+
+          - id: led3
+            config: 
+              !PwmPin
+                pin: 4
+                channel: channel2
+                timer: timer2
+                freq: 1000
+
 circuits:
   - id: LedCircuit
     device: LedEsp

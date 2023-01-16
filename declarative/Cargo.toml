@@ -17,6 +17,7 @@ convert_case = "0.6.0"
 
 log = "0.4"
 simple_logger = "4.0"
+lazy_static="1.4.0"
 
 # TODO Remove when done testing
 [dev-dependencies]
