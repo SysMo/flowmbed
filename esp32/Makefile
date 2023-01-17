@@ -40,3 +40,6 @@ monitor:
 
 03_blink_pwm_gen/build:  example/build/03_blink_pwm_gen
 03_blink_pwm_gen/flash:  example/flash/03_blink_pwm_gen
+
+04_ds18b20/build:  example/build/04_ds18b20
+04_ds18b20/flash:  example/flash/04_ds18b20

@@ -31,6 +31,11 @@ log = "0.4"
 url = "2"
 const-default = "1.0"
 
+# Peripherals
+one-wire-bus = "0.1.1"
+ds18b20 = "0.1.1"
+
+
 # esp32 = "0.16.0"
 
 # rumqttc = "0.10.0"
@@ -43,3 +48,6 @@ const-default = "1.0"
 [build-dependencies]
 embuild = "0.30.4"
 anyhow = "1"
+
+[dev-dependencies]
+# onewire = "0.3.13"
