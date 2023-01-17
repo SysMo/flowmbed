@@ -4,7 +4,6 @@ use ds18b20::{Ds18b20, read_scratchpad, SensorData};
 use one_wire_bus::{OneWire, OneWireResult, OneWireError, Address};
 use log::*;
 use core::fmt::{Debug, Display};
-use core::num;
 pub use ds18b20::Resolution;
 trait IntoAnyhow<V, E> where E: std::fmt::Debug {
   fn into_anyhow(self) -> anyhow::Result<V>;

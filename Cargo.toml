@@ -4,6 +4,7 @@ members = [
   "declarative",
   "dynsys",  
   "esp32-virtual-hal",
+  "peripherals",
   "blocks",
   "systems"
 ]

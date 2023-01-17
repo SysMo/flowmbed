@@ -16,24 +16,28 @@ opt-level = "z"
 pio = ["esp-idf-sys/pio"]
 
 [dependencies]
+anyhow = {version = "1", features = ["backtrace"]}
+# toml-cfg = "0.1"
+log = "0.4"
+const-default = "1.0"
+
 esp-idf-sys = { version = "0.32", features = ["binstart"] }
 embedded-hal = "=1.0.0-alpha.9"
 embedded-hal-0-2 = { package = "embedded-hal", version = "0.2.7", features = ["unproven"] }
 esp-idf-hal = "0.40"
 esp-idf-svc = { version = "0.45", features = ["std", "experimental"]}
 embedded-svc = "0.24"
+
 flowmbed_dynsys = {path = "../dynsys/"}
 flowmbed_core_blocks = {path = "../blocks/", features = ["esp32"]}
+flowmbed_peripherals = {path = "../peripherals/"}
 
-anyhow = {version = "1", features = ["backtrace"]}
-# toml-cfg = "0.1"
-log = "0.4"
 url = "2"
-const-default = "1.0"
 
-# Peripherals
-one-wire-bus = "0.1.1"
-ds18b20 = "0.1.1"
+
+# # Peripherals
+# one-wire-bus = "0.1.1"
+# ds18b20 = "0.1.1"
 
 
 # esp32 = "0.16.0"
