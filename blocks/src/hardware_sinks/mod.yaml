@@ -9,7 +9,7 @@ blocks:
     peripherals:
       - name: out
         direction: Out
-        protocol: crate::hal::OutputPin
+        trait: flowmbed_peripherals::actuators::traits::DigitalOutputPin
 
   - name: PWMOutput
     inputs:
@@ -17,4 +17,4 @@ blocks:
     peripherals:
       - name: out
         direction: Out
-        protocol: crate::hal::PwmPin
+        trait: flowmbed_peripherals::actuators::traits::PwmPin

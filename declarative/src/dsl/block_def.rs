@@ -1,6 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 use serde::{Serialize, Deserialize};
-use super::{FieldType, FieldValue};
+use super::{FieldType, FieldValue, references::QualifiedPath, rust::TypeReference};
 use crate::util::{serde_helpers as sh};
 
 
@@ -148,8 +148,64 @@ impl TryFrom<FieldDef> for DiscreteStateDefinition {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct PeripheralReference {
+#[serde(untagged)]
+pub enum PeripheralReference {
+  Type(PeripheralReferenceType),
+  Trait(PeripheralReferenceTrait),  
+}
+
+impl PeripheralReference {
+  pub fn name<'a>(&self) -> &str {
+    match self {
+        PeripheralReference::Type(x) => &x.name,
+        PeripheralReference::Trait(x) => &x.name,
+    }
+  }
+
+  pub fn direction<'a>(&self) -> &str {
+    match self {
+        PeripheralReference::Type(x) => &x.direction,
+        PeripheralReference::Trait(x) => &x.direction,
+    }
+  }
+
+  pub fn mut_ref(&self, lifetime: Option<&str>) -> TypeReference {
+    let mut gats = HashMap::new();
+    // gats.insert("Error".to_owned(), "HalError".to_owned().into());
+    match self {
+        PeripheralReference::Type(x) => 
+          TypeReference {
+            qpath: x.qpath.clone(),
+            mutable: true,
+            is_trait: false,
+            lifetime: lifetime.map(|x| x.to_owned()),
+            gats
+        },
+        PeripheralReference::Trait(x) =>           
+          TypeReference {
+            qpath: x.qpath.clone(),
+            mutable: true,
+            is_trait: true,
+            lifetime: lifetime.map(|x| x.to_owned()),
+            gats
+        },
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PeripheralReferenceType {
   pub name: String,
   pub direction: String,
-  pub protocol: String,
+  #[serde(rename = "type")]
+  pub qpath: QualifiedPath,
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PeripheralReferenceTrait {
+  pub name: String,
+  pub direction: String,
+  #[serde(rename = "trait")]
+  pub qpath: QualifiedPath,
 }

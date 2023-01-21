@@ -1,6 +1,7 @@
 use std::fs;
 use std::path;
 use genco::prelude::{rust, quote};
+use crate::dsl::rust::TypeReference;
 use crate::dsl::{block_def::{BlockDefinition, BlockModule}, FieldType, FieldValue, FieldKind, StorageSize};
 use super::file_generator::FileGenerator;
 use super::traits::CodeGenerator;
@@ -96,10 +97,10 @@ impl<'a> BlockAutoGenerator<'a> {
 
   pub fn get_type(tpe: &FieldType) -> &str {
     match tpe {
-      FieldType::Int => "i64",
-      FieldType::Float => "f64",
-      FieldType::Bool => "bool",
-      FieldType::String => "str",
+      FieldType::Int => "dscore::Int",
+      FieldType::Float => "dscore::Float",
+      FieldType::Bool => "dscore::Bool",
+      FieldType::String => "dscore::String",
     }
   }
 
@@ -110,32 +111,33 @@ impl<'a> BlockAutoGenerator<'a> {
       #[allow(dead_code)]
       pub struct $(&self.block_def.name)<'a> {
         $(if !self.block_def.parameters.is_empty() =>
+          $(Comment("Parameters"))
           $(for field in &self.block_def.parameters join (,$['\r']) => 
             $(self.decl_field(&field.name, &FieldKind::Parameter, &field.tpe))
           ),
         )
-
+        $(Comment("Inputs"))
         $(if !self.block_def.inputs.is_empty() =>
           $(for field in &self.block_def.inputs join (,$['\r']) => 
             $(self.decl_field(&field.name, &FieldKind::Input, &field.tpe))
           ),
         )
-
+        $(Comment("Outputs"))
         $(if !self.block_def.outputs.is_empty() =>
           $(for field in &self.block_def.outputs join (,$['\r']) => 
             $(self.decl_field(&field.name, &FieldKind::Output, &field.tpe))
           ),
         )
-
+        $(Comment("Discrete states"))
         $(if !self.block_def.discrete_states.is_empty() =>
           $(for field in &self.block_def.discrete_states join (,$['\r']) => 
             $(self.decl_field(&field.name, &FieldKind::DiscreteState, &field.tpe))
           ),
         )
-
+        $(Comment("Peripherals"))
         $(if !self.block_def.peripherals.is_empty() =>
           $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
-            $(self.decl_peripheral(&peripheral.name, &peripheral.protocol))
+            $(self.decl_peripheral(peripheral.name(), peripheral.mut_ref(Some("a"))))
           ),
         )
       }
@@ -144,21 +146,20 @@ impl<'a> BlockAutoGenerator<'a> {
   }
 
   fn decl_field(&self, name: &str, kind: &FieldKind, tpe: &FieldType) -> rust::Tokens {
-    // $(&self.dynsys_core)::$(tpe.to_string())
     quote!(
       pub $(name): $(&self.dynsys_core)::$(kind.to_string())<'a, $(Self::get_type(tpe))>
     )
   }
 
-  fn decl_peripheral(&self, name: &str, protocol: &str) -> rust::Tokens {
+  fn decl_peripheral(&self, name: &str, tpe_ref: TypeReference) -> rust::Tokens {
     quote!(
-      pub $(name): $(protocol)<'a>
+      pub $(name): $(tpe_ref)
     )
   }
 
 
   fn implement_block(&self) -> anyhow::Result<rust::Tokens> {
-    let ds_core = &self.dynsys_core;
+    // let ds_core = &self.dynsys_core;
     Ok(quote!(
       $(DocComment(["Implement the block struct"]))
       #[allow(dead_code)]
@@ -171,7 +172,7 @@ impl<'a> BlockAutoGenerator<'a> {
             )
             $(if !self.block_def.peripherals.is_empty() =>
               $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
-                periph_$(&peripheral.name): None,
+                periph_$(peripheral.name()): None,
               )
             )              
           }
@@ -182,13 +183,13 @@ impl<'a> BlockAutoGenerator<'a> {
   }
 
   fn decl_builder(&self) -> anyhow::Result<rust::Tokens> {
-    let ds_core = &self.dynsys_core;
+    // let ds_core = &self.dynsys_core;
     Ok(quote!(
       pub struct Builder<'a> {
         __phantom: std::marker::PhantomData<&'a ()>,
         $(if !self.block_def.peripherals.is_empty() =>
           $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
-            periph_$(&peripheral.name): Option<$(&peripheral.protocol)<'a>>,
+            periph_$(peripheral.name()): Option<$(peripheral.mut_ref(Some("a")))>,
           )
         )                
         $(for field in &self.block_def.parameters join ($['\r']) => 
@@ -199,7 +200,7 @@ impl<'a> BlockAutoGenerator<'a> {
   }
 
   fn impl_builder(&self) -> anyhow::Result<rust::Tokens> {
-    let ds_core = &self.dynsys_core;
+    // let ds_core = &self.dynsys_core;
     Ok(quote!(
       #[allow(dead_code)]
       impl<'a> Builder<'a> {
@@ -208,7 +209,7 @@ impl<'a> BlockAutoGenerator<'a> {
         )
 
         $(for peripheral in &self.block_def.peripherals join ($['\r']) =>
-          $(self.create_peripheral_setter(&peripheral.name, &peripheral.protocol))
+          $(self.create_peripheral_setter(peripheral.name(), peripheral.mut_ref(Some("a"))))
         )
       }   
     ))
@@ -223,9 +224,9 @@ impl<'a> BlockAutoGenerator<'a> {
     )
   }
 
-  fn create_peripheral_setter(&self, name: &str, protocol: &str) -> rust::Tokens {
+  fn create_peripheral_setter(&self, name: &str, tpe_ref: TypeReference) -> rust::Tokens {
     quote!(
-      pub fn $(name)(mut self, v: $(protocol)<'a>) -> Self {
+      pub fn $(name)(mut self, v: $(tpe_ref)) -> Self {
         self.periph_$(name) = Some(v);
         self
       }
@@ -265,7 +266,7 @@ impl<'a> BlockAutoGenerator<'a> {
             
             $(if !self.block_def.peripherals.is_empty() =>
               $(for peripheral in &self.block_def.peripherals join (,$['\r']) => 
-                $(&peripheral.name): self.periph_$(&peripheral.name).unwrap()
+                $(peripheral.name()): self.periph_$(peripheral.name()).unwrap()
               ),
             )
 

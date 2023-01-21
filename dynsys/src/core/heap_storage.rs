@@ -1,19 +1,20 @@
 use super::system_storage::{StorageSize, StorageAccess, SystemStorageFacade, SystemStorageBuilder, VariableCreator, DefaultSystemStrorage};
 use super::variables::{Parameter, DiscreteState, Output};
+use super::{Float, Int, Bool};
 
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct HeapSystemStorage {
   size: StorageSize,
-  r_param: Vec<f64>,
-  b_param: Vec<bool>,
-  i_param: Vec<i64>,
-  r_dstate: Vec<f64>,
-  b_dstate: Vec<bool>,
-  i_dstate: Vec<i64>,
-  r_out: Vec<f64>,
-  b_out: Vec<bool>,
-  i_out: Vec<i64>,
+  r_param: Vec<Float>,
+  b_param: Vec<Bool>,
+  i_param: Vec<Int>,
+  r_dstate: Vec<Float>,
+  b_dstate: Vec<Bool>,
+  i_dstate: Vec<Int>,
+  r_out: Vec<Float>,
+  b_out: Vec<Bool>,
+  i_out: Vec<Int>,
 }
 
 impl HeapSystemStorage {
@@ -81,17 +82,17 @@ macro_rules! heap_storage_impl_all {
     };
 }
 
-heap_storage_impl_all!(Parameter, f64, r_param);
-heap_storage_impl_all!(Parameter, bool, b_param);
-heap_storage_impl_all!(Parameter, i64, i_param);
+heap_storage_impl_all!(Parameter, Float, r_param);
+heap_storage_impl_all!(Parameter, Bool, b_param);
+heap_storage_impl_all!(Parameter, Int, i_param);
 
-heap_storage_impl_all!(DiscreteState, f64, r_dstate);
-heap_storage_impl_all!(DiscreteState, bool, b_dstate);
-heap_storage_impl_all!(DiscreteState, i64, i_dstate);
+heap_storage_impl_all!(DiscreteState, Float, r_dstate);
+heap_storage_impl_all!(DiscreteState, Bool, b_dstate);
+heap_storage_impl_all!(DiscreteState, Int, i_dstate);
 
-heap_storage_impl_all!(Output, f64, r_out);
-heap_storage_impl_all!(Output, bool, b_out);
-heap_storage_impl_all!(Output, i64, i_out);
+heap_storage_impl_all!(Output, Float, r_out);
+heap_storage_impl_all!(Output, Bool, b_out);
+heap_storage_impl_all!(Output, Int, i_out);
 
 // heap_storage_impl_all!(ContinuousState<'a, f64>, f64, r_state);
 // heap_storage_impl_access!(ContinuousStateDerivative<'a, f64>, f64, r_state_der);

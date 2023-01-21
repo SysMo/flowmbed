@@ -7,16 +7,14 @@ use super::pwm_output_auto::*;
 impl<'a> dscore::DynamicalSystem for PWMOutput<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
-    Aux::apply(self, *self.duty);
-    Ok(())
+    Aux::apply(self, *self.duty)
     // >>> End section @DynamicalSystem::init
 
   }
 
   fn step(&mut self, ssi: &dscore::SystemStateInfo) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::step
-    Aux::apply(self, *self.duty);
-    Ok(())
+    Aux::apply(self, *self.duty)
     // >>> End section @DynamicalSystem::step
   }
 }
@@ -24,11 +22,11 @@ impl<'a> dscore::DynamicalSystem for PWMOutput<'a> {
 // >>> Begin section @Begin section @Helpers
 struct Aux;
 impl Aux {
-  fn apply<'a>(block: &mut PWMOutput<'a>, duty_f: f64) {
+  fn apply<'a>(block: &mut PWMOutput<'a>, duty: dscore::Float) -> anyhow::Result<()> {
     // use log::info;
-    let duty_i = (duty_f * (block.out.get_max_duty() as f64)).round() as u32;
+    // let duty_i = (duty_f * (block.out.get_max_duty() as f64)).round() as u32;
     // info!("duty: {}", duty_i);
-    block.out.set_duty(duty_i);
+    block.out.set_duty(duty)
   }
 }
 // >>> End section @Begin section @Helpers

@@ -58,7 +58,6 @@ impl CodeGenerator for SystemGenerator {
     
     let tokens = quote! {
       use flowmbed_core_blocks::cfg_device;
-      use flowmbed_core_blocks::hal::esp32_hal;
 
       $(for gen in device_gen =>        
         $(gen.generate()?)$['\n']
@@ -73,9 +72,9 @@ impl CodeGenerator for SystemGenerator {
       )
 
       fn main() -> anyhow::Result<()> {
-        $(Comment(["Configure logging"]))
+        $(Comment("Configure logging"))
         cfg_device::config_logger();
-        $(Comment(["Start the main task"]))
+        $(Comment("Start the main task"))
         MainTask::run()?;
 
         Ok(())

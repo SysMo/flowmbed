@@ -1,0 +1,10 @@
+---
+
+blocks:
+  - name: OneShotAnalog
+    outputs:
+      - output: [Float, 0.0]
+    peripherals:
+      - name: sensor
+        direction: In
+        trait: flowmbed_peripherals::sensors::traits::OneShotAnalog

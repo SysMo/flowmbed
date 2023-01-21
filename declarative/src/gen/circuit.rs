@@ -5,6 +5,7 @@ use super::traits::CodeGenerator;
 use super::resolver::NameResolver;
 use genco::prelude::{rust, quote};
 use super::comments::{Comment, DocComment};
+use convert_case::{Case, Casing};
 
 pub struct CircuitGenerator<'a> {
   pub resolver: &'a dyn NameResolver,
@@ -104,7 +105,9 @@ impl<'a> CircuitGenerator<'a> {
 impl<'a> CodeGenerator for CircuitGenerator<'a> {
   fn generate(&self) -> anyhow::Result<rust::Tokens> {
     let circuit_name = &self.circuit.id;
-    let peripherals_type = &format!("{}Peripherals", self.circuit.device);
+
+    let peripherals_struct = &format!("{}Peripherals",
+      self.circuit.device.from_case(Case::Snake).to_case(Case::UpperCamel));
 
     Ok(quote!{
       $(DocComment(["Declare circuit structure"]))
@@ -117,7 +120,7 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
       $(DocComment(["Implement circuit structure"]))
       impl<'a> $(circuit_name)<'a> {
         pub fn new<ST: $(&self.dynsys_core)::DefaultSystemStrorage>(
-          storage: &'a ST, peripherals: &'a mut $(peripherals_type)
+          storage: &'a ST, peripherals: &'a mut $(peripherals_struct)
         ) -> anyhow::Result<$(circuit_name)<'a>> {
           use $(&self.dynsys_core)::BlockBuilder;
 
@@ -161,7 +164,7 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
 
       $(DocComment(["Implement RequirePeripherals protocol"]))
       impl<'a> $(&self.i_req_peripherals) for $(circuit_name)<'a> {
-        type PeripheralsStruct = $(peripherals_type)<'a>;
+        type PeripheralsStruct = $(peripherals_struct)<'a>;
       }
 
       $(DocComment(["Implement RequireStorage protocol"]))

@@ -3,19 +3,21 @@ use flowmbed_dynsys::core as dscore;
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct CountingTrigger<'a> {
-  pub pulses_up: dscore::Parameter<'a, i64>,
-  pub pulses_down: dscore::Parameter<'a, i64>,
-  pub initial_state: dscore::Parameter<'a, bool>,
-  pub initial_count: dscore::Parameter<'a, i64>,
-  pub count_on_rising: dscore::Parameter<'a, bool>,
-
-  pub input: dscore::Input<'a, bool>,
-
-  pub output: dscore::Output<'a, bool>,
-
-  pub last_input: dscore::DiscreteState<'a, bool>,
-  pub current: dscore::DiscreteState<'a, bool>,
-  pub counter: dscore::DiscreteState<'a, i64>,
+  // Parameters
+  pub pulses_up: dscore::Parameter<'a, dscore::Int>,
+  pub pulses_down: dscore::Parameter<'a, dscore::Int>,
+  pub initial_state: dscore::Parameter<'a, dscore::Bool>,
+  pub initial_count: dscore::Parameter<'a, dscore::Int>,
+  pub count_on_rising: dscore::Parameter<'a, dscore::Bool>,
+  // Inputs
+  pub input: dscore::Input<'a, dscore::Bool>,
+  // Outputs
+  pub output: dscore::Output<'a, dscore::Bool>,
+  // Discrete states
+  pub last_input: dscore::DiscreteState<'a, dscore::Bool>,
+  pub current: dscore::DiscreteState<'a, dscore::Bool>,
+  pub counter: dscore::DiscreteState<'a, dscore::Int>,
+  // Peripherals
 }
 
 /// Implement the block struct
@@ -35,32 +37,32 @@ impl<'a> CountingTrigger<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  val_pulses_up: i64,
-  val_pulses_down: i64,
-  val_initial_state: bool,
-  val_initial_count: i64,
-  val_count_on_rising: bool,
+  val_pulses_up: dscore::Int,
+  val_pulses_down: dscore::Int,
+  val_initial_state: dscore::Bool,
+  val_initial_count: dscore::Int,
+  val_count_on_rising: dscore::Bool,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
-  pub fn pulses_up(mut self, v: i64) -> Self {
+  pub fn pulses_up(mut self, v: dscore::Int) -> Self {
     self.val_pulses_up = v;
     self
   }
-  pub fn pulses_down(mut self, v: i64) -> Self {
+  pub fn pulses_down(mut self, v: dscore::Int) -> Self {
     self.val_pulses_down = v;
     self
   }
-  pub fn initial_state(mut self, v: bool) -> Self {
+  pub fn initial_state(mut self, v: dscore::Bool) -> Self {
     self.val_initial_state = v;
     self
   }
-  pub fn initial_count(mut self, v: i64) -> Self {
+  pub fn initial_count(mut self, v: dscore::Int) -> Self {
     self.val_initial_count = v;
     self
   }
-  pub fn count_on_rising(mut self, v: bool) -> Self {
+  pub fn count_on_rising(mut self, v: dscore::Bool) -> Self {
     self.val_count_on_rising = v;
     self
   }

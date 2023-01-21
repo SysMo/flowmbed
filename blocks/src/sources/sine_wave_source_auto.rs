@@ -3,12 +3,16 @@ use flowmbed_dynsys::core as dscore;
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct SineWaveSource<'a> {
-  pub period: dscore::Parameter<'a, f64>,
-  pub phase: dscore::Parameter<'a, f64>,
-  pub amplitude: dscore::Parameter<'a, f64>,
-  pub offset: dscore::Parameter<'a, f64>,
-
-  pub output: dscore::Output<'a, f64>,
+  // Parameters
+  pub period: dscore::Parameter<'a, dscore::Float>,
+  pub phase: dscore::Parameter<'a, dscore::Float>,
+  pub amplitude: dscore::Parameter<'a, dscore::Float>,
+  pub offset: dscore::Parameter<'a, dscore::Float>,
+  // Inputs
+  // Outputs
+  pub output: dscore::Output<'a, dscore::Float>,
+  // Discrete states
+  // Peripherals
 }
 
 /// Implement the block struct
@@ -27,27 +31,27 @@ impl<'a> SineWaveSource<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  val_period: f64,
-  val_phase: f64,
-  val_amplitude: f64,
-  val_offset: f64,
+  val_period: dscore::Float,
+  val_phase: dscore::Float,
+  val_amplitude: dscore::Float,
+  val_offset: dscore::Float,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
-  pub fn period(mut self, v: f64) -> Self {
+  pub fn period(mut self, v: dscore::Float) -> Self {
     self.val_period = v;
     self
   }
-  pub fn phase(mut self, v: f64) -> Self {
+  pub fn phase(mut self, v: dscore::Float) -> Self {
     self.val_phase = v;
     self
   }
-  pub fn amplitude(mut self, v: f64) -> Self {
+  pub fn amplitude(mut self, v: dscore::Float) -> Self {
     self.val_amplitude = v;
     self
   }
-  pub fn offset(mut self, v: f64) -> Self {
+  pub fn offset(mut self, v: dscore::Float) -> Self {
     self.val_offset = v;
     self
   }

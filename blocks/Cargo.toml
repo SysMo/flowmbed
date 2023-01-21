@@ -9,8 +9,10 @@ edition = "2021"
 esp32 = ["esp-idf-sys", "esp-idf-hal", "esp-idf-svc"]
 
 [dependencies]
-flowmbed_dynsys = {path = "../dynsys/"}
 anyhow = {version = "1", features = ["backtrace"]}
+
+flowmbed_dynsys = {path = "../dynsys/"}
+flowmbed_peripherals = {path = "../peripherals/"}
 
 # HAL
 embedded-hal = "=1.0.0-alpha.9"

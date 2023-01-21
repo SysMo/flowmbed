@@ -1,17 +1,17 @@
 use crate::dsl::device::{
-  DeviceConfig, DeviceConfigEnum
+  Device, DeviceConfig, Peripheral, PeripheralConfig
 };
 use super::traits::CodeGenerator;
 use genco::prelude::{rust, quote};
 use super::comments::{Comment, DocComment};
-use super::devices::esp32::ESP32DeviceGenerator;
+use convert_case::{Case, Casing};
 
 pub struct DeviceGenerator<'a> {
-  pub device: &'a DeviceConfig,
+  pub device: &'a Device,
 }
 
 impl<'a> DeviceGenerator<'a> {
-  pub fn new(device: &'a DeviceConfig) -> DeviceGenerator<'a> {
+  pub fn new(device: &'a Device) -> Self {
     DeviceGenerator { 
       device
     }
@@ -20,49 +20,92 @@ impl<'a> DeviceGenerator<'a> {
 
 impl<'a> CodeGenerator for DeviceGenerator<'a> {
   fn generate(&self) -> anyhow::Result<rust::Tokens> {
-    let device_gen: &dyn IDeviceGenerator = &match &self.device.config {
-      DeviceConfigEnum::ESP32(device) => ESP32DeviceGenerator::new(device),
-    };    
     let device_name = &self.device.id;
 
-    let peripherals_type = &format!("{}Peripherals", device_name);
-    let device_var = "device_peripherals";    
+    let device_struct = &format!("{}Device",
+      device_name.from_case(Case::Snake).to_case(Case::UpperCamel));
 
-    let peripheral_gens = device_gen.peripheral_generators();
 
-    Ok(quote! {
-      $(device_gen.generate_imports()?)
-      $(DocComment([format!("Device {}", self.device.id)]))$['\r']
-      struct $(peripherals_type)<'a> {$['\r']
+    let peripherals_struct = &format!("{}Peripherals",
+      device_name.from_case(Case::Snake).to_case(Case::UpperCamel));
+      
+    let conf_gen = self.device.gen();
+
+    let peripherals = self.device.config.peripherals();
+
+    Ok(quote!(
+      $(conf_gen.gen_imports()?)
+
+      struct $(peripherals_struct)<'a> {
         __marker: std::marker::PhantomData<&'a ()>,
-        $(for (id, peripheral_gen) in &peripheral_gens => 
-           $(*id): $(peripheral_gen.generate_declare()?),$['\r']
-        )
+        $(for peripheral in peripherals =>
+          $(&peripheral.id): $(peripheral.gen().gen_type()?),$['\r']
+        )  
       }
 
-      impl<'a> $(peripherals_type)<'a> {
-        pub fn new() -> anyhow::Result<$(peripherals_type)<'a>> {
-          let $(device_var) = $(device_gen.take_peripherals()?);
-          Ok($(peripherals_type) {
+      impl<'a> $(peripherals_struct)<'a> {
+        pub fn new() -> anyhow::Result<$(peripherals_struct)<'a>> {
+          let peripherals = $(conf_gen.gen_take_peripherals()?);
+          Ok($(peripherals_struct) {
             __marker: std::marker::PhantomData,
-            $(for (id, peripheral_gen) in &peripheral_gens => 
-              $(*id): $(peripheral_gen.generate_initialize(device_var)?)?,$['\r']
+            $(for peripheral in peripherals =>
+              $(&peripheral.id): $(peripheral.gen().gen_initialize()?),$['\r']
             )  
           })
         }
       }
-    })
+
+
+    ))
   }
 }
 
+// let peripheral_gens = self.device.config
+//   .peripherals();
 
-pub trait IDeviceGenerator<'a> {
-  fn generate_imports(&self) -> anyhow::Result<rust::Tokens>;
-  fn take_peripherals(&self) -> anyhow::Result<rust::Tokens>;
-  fn peripheral_generators(&self) -> Vec<(&'a str, &'a dyn IPeripheralGenerator)>;
+// Ok(quote! {
+//   $(device_gen.generate_imports()?)
+//   $(DocComment([format!("Device {}", self.device.id)]))$['\r']
+//   struct $(peripherals_type)<'a> {$['\r']
+//     __marker: std::marker::PhantomData<&'a ()>,
+//     $(for (id, peripheral_gen) in &peripheral_gens => 
+//        $(*id): $(peripheral_gen.generate_declare()?),$['\r']
+//     )
+//   }
+
+//   impl<'a> $(peripherals_type)<'a> {
+//     pub fn new() -> anyhow::Result<$(peripherals_type)<'a>> {
+//       let $(device_var) = $(device_gen.take_peripherals()?);
+//       Ok($(peripherals_type) {
+//         __marker: std::marker::PhantomData,
+//         $(for (id, peripheral_gen) in &peripheral_gens => 
+//           $(*id): $(peripheral_gen.generate_initialize(device_var)?)?,$['\r']
+//         )  
+//       })
+//     }
+//   }
+// })
+
+pub struct PeripheralGenerator<'a> {
+  pub peripheral: &'a Peripheral,
 }
 
-pub trait IPeripheralGenerator {
-  fn generate_declare(&self) -> anyhow::Result<rust::Tokens>;
-  fn generate_initialize(&self, device_var: &str) -> anyhow::Result<rust::Tokens>;
+impl<'a> PeripheralGenerator<'a> {
+  pub fn new(peripheral: &'a Peripheral) -> Self {
+    PeripheralGenerator { 
+      peripheral
+    }
+  }
+
+}
+
+
+pub trait DeviceConfigGenerator {
+  fn gen_imports(&self) -> anyhow::Result<rust::Tokens>;
+  fn gen_take_peripherals(&self) -> anyhow::Result<rust::Tokens>;
+}
+
+pub trait PeripheralConfigGenerator {
+  fn gen_type(&self) -> anyhow::Result<rust::Tokens>;
+  fn gen_initialize(&self) -> anyhow::Result<rust::Tokens>;
 }

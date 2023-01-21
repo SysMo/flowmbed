@@ -1,6 +1,7 @@
 // use super
 
 use super::system::{DynamicalSystem, SystemStateInfo};
+use super::Float;
 
 pub trait SystemRunner {
   fn init(&mut self) -> anyhow::Result<()>;
@@ -9,10 +10,10 @@ pub trait SystemRunner {
 }
 
 pub struct FixedStepRunSettings {
-  pub t_step: f64,
-  pub t_print: Option<f64>,
-  pub t_end: Option<f64>,
-  pub speedup: f64
+  pub t_step: Float,
+  pub t_print: Option<Float>,
+  pub t_end: Option<Float>,
+  pub speedup: Float
 }
 
 impl Default for FixedStepRunSettings {
@@ -29,7 +30,7 @@ impl Default for FixedStepRunSettings {
 pub struct FixedStepRunner<'a> {
   system: &'a mut dyn DynamicalSystem,
   settings: FixedStepRunSettings,
-  t_last_print: f64,
+  t_last_print: Float,
 }
 
 impl<'a> FixedStepRunner<'a> {

@@ -1,3 +1,4 @@
+#[allow(unused_macros)]
 macro_rules! block_builder_field {
 
   ($block: ident, $field: ident, Parameter, $tpe: ty) => {
@@ -12,6 +13,7 @@ macro_rules! block_builder_field {
   };
 }
 
+#[allow(unused_macros)]
 macro_rules! block_builder {
   ($block: ident, $([$field: ident, $field_type: ident, $tpe: ty])+) => {
     pub struct Builder<'a> {
@@ -31,5 +33,5 @@ macro_rules! block_builder {
 
 }
 
-
+#[allow(unused_imports)]
 pub(crate) use {block_builder, block_builder_field};

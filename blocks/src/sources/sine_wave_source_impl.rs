@@ -29,8 +29,8 @@ impl<'a> dscore::DynamicalSystem for SineWaveSource<'a> {
 use std::f64::consts::PI;
 struct Helpers;
 impl Helpers {
-  pub fn compute_output(block: &SineWaveSource, t: f64) -> f64 {
-    let x: f64 = (t / *block.period + *block.phase) * 2.0 * PI;
+  pub fn compute_output(block: &SineWaveSource, t: dscore::Float) -> dscore::Float {
+    let x = (t / *block.period + *block.phase) * 2.0 * (PI as dscore::Float);
     let out = *block.amplitude * x.sin() + *block.offset;
     out
   }

@@ -3,12 +3,13 @@ use flowmbed_dynsys::core as dscore;
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct DigitalOutput<'a> {
-
-  pub input: dscore::Input<'a, bool>,
-
-  pub current: dscore::DiscreteState<'a, bool>,
-
-  pub out: crate::hal::OutputPin<'a>,
+  // Inputs
+  pub input: dscore::Input<'a, dscore::Bool>,
+  // Outputs
+  // Discrete states
+  pub current: dscore::DiscreteState<'a, dscore::Bool>,
+  // Peripherals
+  pub out: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin,
 }
 
 /// Implement the block struct
@@ -24,13 +25,13 @@ impl<'a> DigitalOutput<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_out: Option<crate::hal::OutputPin<'a>>,
+  periph_out: Option<&'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn out(mut self, v: crate::hal::OutputPin<'a>) -> Self {
+  pub fn out(mut self, v: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin) -> Self {
     self.periph_out = Some(v);
     self
   }

@@ -45,7 +45,7 @@ impl TryFrom<StrNameOrMap> for NamespaceImport {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(try_from = "String")]
+#[serde(from = "String")]
 pub struct QualifiedPath {
   pub segments: Vec<String>
 }
@@ -119,11 +119,10 @@ impl PartialEq for QualifiedPath {
 
 impl Eq for QualifiedPath {}
 
-impl TryFrom<String> for QualifiedPath {
-  type Error = anyhow::Error;
-
-  fn try_from(s: String) -> Result<Self, Self::Error> {
+impl From<String> for QualifiedPath {
+  fn from(s: String) -> Self {
     let segments: Vec<String> = s.split("::").map(|x| x.to_owned()).collect();
-    Ok(QualifiedPath { segments })
+    QualifiedPath { segments }
   }
 }
+

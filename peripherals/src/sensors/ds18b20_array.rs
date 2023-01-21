@@ -5,6 +5,9 @@ use one_wire_bus::{OneWire, OneWireResult, OneWireError, Address};
 use log::*;
 use core::fmt::{Debug, Display};
 pub use ds18b20::Resolution;
+use flowmbed_dynsys::core::Float;
+
+use super::traits::OneShotAnalog;
 trait IntoAnyhow<V, E> where E: std::fmt::Debug {
   fn into_anyhow(self) -> anyhow::Result<V>;
 }
@@ -136,7 +139,7 @@ where P: OutputPin<Error = E> + InputPin<Error = E>,
     })
   }  
 
-  pub fn get_temperature(&mut self) -> anyhow::Result<f64> {
+  pub fn get_temperature(&mut self) -> anyhow::Result<Float> {
 
     // initiate a temperature measurement for all connected devices
     ds18b20::start_simultaneous_temp_measurement(&mut self.bus, &mut self.delay).into_anyhow()?;
@@ -154,7 +157,16 @@ where P: OutputPin<Error = E> + InputPin<Error = E>,
     );
 
 
-    Ok(sensor_data.temperature as f64)
+    Ok(sensor_data.temperature as Float)
   }
 }
 
+impl<P, E, D> OneShotAnalog for DS18B20Array<P, E, D>
+where P: OutputPin<Error = E> + InputPin<Error = E>, 
+      E: Debug + Display + std::marker::Sync,
+      D: DelayUs<u16> + DelayMs<u16>
+{
+  fn read(&mut self) -> anyhow::Result<Float> {
+      self.get_temperature()
+  }
+}

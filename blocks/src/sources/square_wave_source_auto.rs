@@ -3,14 +3,17 @@ use flowmbed_dynsys::core as dscore;
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct SquareWaveSource<'a> {
-  pub period: dscore::Parameter<'a, f64>,
-  pub duty: dscore::Parameter<'a, f64>,
-  pub initial: dscore::Parameter<'a, bool>,
-
-  pub output: dscore::Output<'a, bool>,
-
-  pub current: dscore::DiscreteState<'a, bool>,
-  pub last_change: dscore::DiscreteState<'a, f64>,
+  // Parameters
+  pub period: dscore::Parameter<'a, dscore::Float>,
+  pub duty: dscore::Parameter<'a, dscore::Float>,
+  pub initial: dscore::Parameter<'a, dscore::Bool>,
+  // Inputs
+  // Outputs
+  pub output: dscore::Output<'a, dscore::Bool>,
+  // Discrete states
+  pub current: dscore::DiscreteState<'a, dscore::Bool>,
+  pub last_change: dscore::DiscreteState<'a, dscore::Float>,
+  // Peripherals
 }
 
 /// Implement the block struct
@@ -28,22 +31,22 @@ impl<'a> SquareWaveSource<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  val_period: f64,
-  val_duty: f64,
-  val_initial: bool,
+  val_period: dscore::Float,
+  val_duty: dscore::Float,
+  val_initial: dscore::Bool,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
-  pub fn period(mut self, v: f64) -> Self {
+  pub fn period(mut self, v: dscore::Float) -> Self {
     self.val_period = v;
     self
   }
-  pub fn duty(mut self, v: f64) -> Self {
+  pub fn duty(mut self, v: dscore::Float) -> Self {
     self.val_duty = v;
     self
   }
-  pub fn initial(mut self, v: bool) -> Self {
+  pub fn initial(mut self, v: dscore::Bool) -> Self {
     self.val_initial = v;
     self
   }

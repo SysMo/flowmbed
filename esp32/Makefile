@@ -43,3 +43,6 @@ monitor:
 
 04_ds18b20/build:  example/build/04_ds18b20
 04_ds18b20/flash:  example/flash/04_ds18b20
+
+54_temperature_gen/build:  example/build/54_temperature_gen
+54_temperature_gen/flash:  example/flash/54_temperature_gen

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
-use super::device::PeripheralRef;
+// use super::device::PeripheralRef;
 use super::FieldValue;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -3,10 +3,12 @@ use flowmbed_dynsys::core as dscore;
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct PWMOutput<'a> {
-
-  pub duty: dscore::Input<'a, f64>,
-
-  pub out: crate::hal::PwmPin<'a>,
+  // Inputs
+  pub duty: dscore::Input<'a, dscore::Float>,
+  // Outputs
+  // Discrete states
+  // Peripherals
+  pub out: &'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin,
 }
 
 /// Implement the block struct
@@ -22,13 +24,13 @@ impl<'a> PWMOutput<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_out: Option<crate::hal::PwmPin<'a>>,
+  periph_out: Option<&'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn out(mut self, v: crate::hal::PwmPin<'a>) -> Self {
+  pub fn out(mut self, v: &'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin) -> Self {
     self.periph_out = Some(v);
     self
   }

@@ -1,7 +1,8 @@
-use super::{DefaultSystemStrorage, SystemStorageBuilder};
+// use super::{DefaultSystemStrorage, SystemStorageBuilder};
+use super::Float;
 
 pub struct SystemStateInfo {
-  pub t: f64,
+  pub t: Float,
   // pub event: bool
 }
 

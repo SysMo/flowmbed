@@ -1,6 +1,7 @@
 use const_default::ConstDefault;
 use const_default_derive::ConstDefault;
 use super::variables::{Parameter, DiscreteState, Output, Input};
+use super::{Float, Int, Bool};
 
 #[allow(dead_code)]
 #[derive(Default, Debug, ConstDefault, PartialEq, Eq, Clone)]
@@ -56,15 +57,15 @@ macro_rules! next_index_impl {
   };
 }
 
-next_index_impl!(Parameter, f64, r_param);
-next_index_impl!(Parameter, bool, b_param);
-next_index_impl!(Parameter, i64, i_param);
-next_index_impl!(DiscreteState, f64, r_dstate);
-next_index_impl!(DiscreteState, bool, b_dstate);
-next_index_impl!(DiscreteState, i64, i_dstate);
-next_index_impl!(Output, f64, r_out);
-next_index_impl!(Output, bool, b_out);
-next_index_impl!(Output, i64, i_out);
+next_index_impl!(Parameter, Float, r_param);
+next_index_impl!(Parameter, Bool, b_param);
+next_index_impl!(Parameter, Int, i_param);
+next_index_impl!(DiscreteState, Float, r_dstate);
+next_index_impl!(DiscreteState, Bool, b_dstate);
+next_index_impl!(DiscreteState, Int, i_dstate);
+next_index_impl!(Output, Float, r_out);
+next_index_impl!(Output, Bool, b_out);
+next_index_impl!(Output, Int, i_out);
 
 #[allow(dead_code)]
 impl StorageSize {
@@ -114,15 +115,15 @@ pub trait SystemStorageFacade {
 
 pub trait DefaultSystemStrorage : SystemStorageFacade 
 where for<'a> Self: 
-  StorageAccess<'a, Parameter<'a, f64>, f64> + 
-  StorageAccess<'a, Parameter<'a, bool>, bool> +
-  StorageAccess<'a, Parameter<'a, i64>, i64> +
-  StorageAccess<'a, DiscreteState<'a, f64>, f64> +
+  StorageAccess<'a, Parameter<'a, Float>, Float> + 
+  StorageAccess<'a, Parameter<'a, Bool>, Bool> +
+  StorageAccess<'a, Parameter<'a, Int>, Int> +
+  StorageAccess<'a, DiscreteState<'a, Float>, Float> +
   StorageAccess<'a, DiscreteState<'a, bool>, bool> +
-  StorageAccess<'a, DiscreteState<'a, i64>, i64> +
-  StorageAccess<'a, Output<'a, f64>, f64> + 
-  StorageAccess<'a, Output<'a, bool>, bool> +
-  StorageAccess<'a, Output<'a, i64>, i64> +
+  StorageAccess<'a, DiscreteState<'a, Int>, Int> +
+  StorageAccess<'a, Output<'a, Float>, Float> + 
+  StorageAccess<'a, Output<'a, Bool>, Bool> +
+  StorageAccess<'a, Output<'a, Int>, Int> +
 {
 
 }

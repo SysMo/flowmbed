@@ -28,7 +28,10 @@ examples/02_blink_pwm: build/pre gen_system/systems/examples/02_blink_pwm
 examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
+examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
+	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
+examples/54_temperature: build/pre gen_system/systems/examples/54_temperature
 
 
 # examples/%/run_system:

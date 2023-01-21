@@ -17,7 +17,7 @@ pub use system::{SystemStateInfo, DynamicalSystem};
 pub use system_runner::{SystemRunner, FixedStepRunner, FixedStepRunSettings};
 pub use peripheral::RequirePeripherals;
 
-pub use i64 as Int;
+pub use i32 as Int;
 pub use bool as  Bool;
-pub use f64 as Float;
+pub use f32 as Float;
 pub use String;

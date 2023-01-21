@@ -1,0 +1,26 @@
+---
+
+blocks:
+  - name: FloatSink
+    inputs:
+      - input: [Float]
+    peripherals:
+      - name: sink
+        direction: Out
+        trait: flowmbed_peripherals::sinks::traits::ValueSink
+
+  - name: BoolSink
+    inputs:
+      - input: [Bool]
+    peripherals:
+      - name: sink
+        direction: Out
+        trait: flowmbed_peripherals::sinks::traits::ValueSink
+
+  - name: IntSink
+    inputs:
+      - input: [Int]
+    peripherals:
+      - name: sink
+        direction: Out
+        trait: flowmbed_peripherals::sinks::traits::ValueSink        
