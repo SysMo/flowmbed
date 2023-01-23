@@ -1,6 +1,6 @@
 use esp32_hal::ledc;
 use esp32_hal::peripherals::Peripherals;
-use flowmbed_core_blocks::{hardware_sinks as hardware_sinks, sources as sources};
+use flowmbed_core_blocks::{actuators as hardware_sinks, sources as sources};
 use flowmbed_dynsys::core as fds_core;
 use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage};
 
@@ -57,9 +57,9 @@ struct LedCircuit<'a> {
     source1: sources::SineWaveSource<'a>,
     source2: sources::SineWaveSource<'a>,
     source3: sources::SineWaveSource<'a>,
-    pwm1: hardware_sinks::PWMOutput<'a>,
-    pwm2: hardware_sinks::PWMOutput<'a>,
-    pwm3: hardware_sinks::PWMOutput<'a>,
+    pwm1: actuators::PWMOutput<'a>,
+    pwm2: actuators::PWMOutput<'a>,
+    pwm3: actuators::PWMOutput<'a>,
 }
 
 /// Implement circuit structure
@@ -78,11 +78,11 @@ impl<'a> LedCircuit<'a> {
                 ::builder().offset(0.5).period(2.2).amplitude(0.5).build(&mut builder)},
             source3: {sources::SineWaveSource
                 ::builder().amplitude(0.5).period(4.4).offset(0.5).build(&mut builder)},
-            pwm1: {hardware_sinks::PWMOutput
+            pwm1: {actuators::PWMOutput
                 ::builder().out(&mut peripherals.led1).build(&mut builder)},
-            pwm2: {hardware_sinks::PWMOutput
+            pwm2: {actuators::PWMOutput
                 ::builder().out(&mut peripherals.led2).build(&mut builder)},
-            pwm3: {hardware_sinks::PWMOutput
+            pwm3: {actuators::PWMOutput
                 ::builder().out(&mut peripherals.led3).build(&mut builder)},
         };
 
@@ -135,9 +135,9 @@ impl<'a> RequiresStorage for LedCircuit<'a> {
             .add(sources::SineWaveSource::SIZE)
             .add(sources::SineWaveSource::SIZE)
             .add(sources::SineWaveSource::SIZE)
-            .add(hardware_sinks::PWMOutput::SIZE)
-            .add(hardware_sinks::PWMOutput::SIZE)
-            .add(hardware_sinks::PWMOutput::SIZE)
+            .add(actuators::PWMOutput::SIZE)
+            .add(actuators::PWMOutput::SIZE)
+            .add(actuators::PWMOutput::SIZE)
         ;
 }
 

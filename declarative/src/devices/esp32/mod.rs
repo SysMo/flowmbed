@@ -29,7 +29,7 @@ struct Imports {
   pub gpio: rust::Import,
   ledc: rust::Import,
   Peripherals: rust::Import,
-  serial_value_sink: rust::Import,
+  esp32hal: rust::Import,
 }
 
 lazy_static! {
@@ -37,7 +37,7 @@ lazy_static! {
     gpio: rust::import("esp_idf_hal", "gpio"),
     ledc: rust::import("esp_idf_hal", "ledc"),
     Peripherals: rust::import("esp_idf_hal::peripherals", "Peripherals"),
-    serial_value_sink: rust::import("flowmbed_esp32::hal", "SerialValueSink"),
+    esp32hal: rust::import("flowmbed_esp32", "hal").with_alias("esp32hal")
   };  
 }
 

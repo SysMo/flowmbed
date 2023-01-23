@@ -19,19 +19,35 @@ examples/core_blocks: build/pre gen_blocks/blocks
 	$(SETENV) && cd ../blocks && cargo run --example 01_test_gen_block
 
 
-examples/01_blink: build/pre gen_system/systems/examples/01_blink
-	$(SETENV) && cd ../systems && cargo run --example 01_blink_gen
+# examples/01_blink: build/pre gen_system/systems/examples/01_blink
+# 	$(SETENV) && cd ../systems && cargo run --example 01_blink_gen
 
-examples/02_blink_pwm: build/pre gen_system/systems/examples/02_blink_pwm
-	$(SETENV) && cd ../systems && cargo run --example 02_blink_pwm_gen
+# examples/02_blink_pwm: build/pre gen_system/systems/examples/02_blink_pwm
+# 	$(SETENV) && cd ../systems && cargo run --example 02_blink_pwm_gen
 
-examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
-	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
+# examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
+# 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
-examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
-	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
+# examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
+# 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
-examples/54_temperature: build/pre gen_system/systems/examples/54_temperature
+examples/build/%: build/pre
+	echo Generating target $*
+	make gen_system/systems/examples/$*
+	echo Building target $*
+	cd ../esp32 && . ~/export-esp.sh && make $*_gen/build
+
+# gen_system/systems/examples/$*
+examples/flash/%: build/pre
+	echo Generating target $*
+	make gen_system/systems/examples/$*
+	echo Building target $*
+	cd ../esp32 && . ~/export-esp.sh && make $*_gen/flash
+
+
+examples/54_temperature/build: examples/build/54_temperature
+
+examples/54_temperature/flash: examples/flash/54_temperature
 
 
 # examples/%/run_system:

@@ -18,3 +18,4 @@ where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
       .map_err(|e| e.into())
   }
 }
+

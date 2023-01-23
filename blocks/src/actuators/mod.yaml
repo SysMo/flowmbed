@@ -7,7 +7,7 @@ blocks:
     discrete_states:    
       - current: [Bool, false]
     peripherals:
-      - name: out
+      - name: output
         direction: Out
         trait: flowmbed_peripherals::actuators::traits::DigitalOutputPin
 
@@ -15,6 +15,6 @@ blocks:
     inputs:
       - duty: [Float]
     peripherals:
-      - name: out
+      - name: output
         direction: Out
         trait: flowmbed_peripherals::actuators::traits::PwmPin

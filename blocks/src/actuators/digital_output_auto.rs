@@ -9,7 +9,7 @@ pub struct DigitalOutput<'a> {
   // Discrete states
   pub current: dscore::DiscreteState<'a, dscore::Bool>,
   // Peripherals
-  pub out: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin,
+  pub output: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin,
 }
 
 /// Implement the block struct
@@ -18,21 +18,21 @@ impl<'a> DigitalOutput<'a> {
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
-      periph_out: None,
+      periph_output: None,
     }
   }
 }
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_out: Option<&'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin>,
+  periph_output: Option<&'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn out(mut self, v: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin) -> Self {
-    self.periph_out = Some(v);
+  pub fn output(mut self, v: &'a mut dyn flowmbed_peripherals::actuators::traits::DigitalOutputPin) -> Self {
+    self.periph_output = Some(v);
     self
   }
 }
@@ -45,7 +45,7 @@ impl<'a> dscore::BlockBuilder<'a, DigitalOutput<'a>> for Builder<'a> {
 
       current: storage_builder.create_discrete_state(false),
 
-      out: self.periph_out.unwrap(),
+      output: self.periph_output.unwrap(),
 
     }
   }

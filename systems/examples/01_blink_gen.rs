@@ -1,6 +1,6 @@
 use esp32_hal::gpio;
 use esp32_hal::peripherals::Peripherals;
-use flowmbed_core_blocks::{discrete as discrete, hardware_sinks as hardware_sinks, sources as sources};
+use flowmbed_core_blocks::{discrete as discrete, actuators as hardware_sinks, sources as sources};
 use flowmbed_dynsys::core as fds_core;
 use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage};
 
@@ -46,12 +46,12 @@ struct LedCircuit<'a> {
     trigger4: discrete::CountingTrigger<'a>,
     trigger5: discrete::CountingTrigger<'a>,
     trigger6: discrete::CountingTrigger<'a>,
-    led1: hardware_sinks::DigitalOutput<'a>,
-    led2: hardware_sinks::DigitalOutput<'a>,
-    led3: hardware_sinks::DigitalOutput<'a>,
-    led4: hardware_sinks::DigitalOutput<'a>,
-    led5: hardware_sinks::DigitalOutput<'a>,
-    led6: hardware_sinks::DigitalOutput<'a>,
+    led1: actuators::DigitalOutput<'a>,
+    led2: actuators::DigitalOutput<'a>,
+    led3: actuators::DigitalOutput<'a>,
+    led4: actuators::DigitalOutput<'a>,
+    led5: actuators::DigitalOutput<'a>,
+    led6: actuators::DigitalOutput<'a>,
 }
 
 /// Implement circuit structure
@@ -78,17 +78,17 @@ impl<'a> LedCircuit<'a> {
                 ::builder().pulses_down(2).initial_count(0).pulses_up(5).build(&mut builder)},
             trigger6: {discrete::CountingTrigger
                 ::builder().initial_count(0).pulses_up(6).pulses_down(1).build(&mut builder)},
-            led1: {hardware_sinks::DigitalOutput
+            led1: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led1).build(&mut builder)},
-            led2: {hardware_sinks::DigitalOutput
+            led2: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led2).build(&mut builder)},
-            led3: {hardware_sinks::DigitalOutput
+            led3: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led3).build(&mut builder)},
-            led4: {hardware_sinks::DigitalOutput
+            led4: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led4).build(&mut builder)},
-            led5: {hardware_sinks::DigitalOutput
+            led5: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led5).build(&mut builder)},
-            led6: {hardware_sinks::DigitalOutput
+            led6: {actuators::DigitalOutput
                 ::builder().out(&mut peripherals.led6).build(&mut builder)},
         };
 
@@ -168,12 +168,12 @@ impl<'a> RequiresStorage for LedCircuit<'a> {
             .add(discrete::CountingTrigger::SIZE)
             .add(discrete::CountingTrigger::SIZE)
             .add(discrete::CountingTrigger::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
-            .add(hardware_sinks::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
+            .add(actuators::DigitalOutput::SIZE)
         ;
 }
 

@@ -15,12 +15,12 @@ impl PeripheralConfig for SerialValueSink {}
 
 impl PeripheralConfigGenerator for SerialValueSink {
   fn gen_type(&self) -> anyhow::Result<rust::Tokens> {
-    let serial_value_sink = &IMPORTS.serial_value_sink;
-    Ok(quote!($(serial_value_sink)))
+    let esp32hal = &IMPORTS.esp32hal;
+    Ok(quote!($(esp32hal)::SerialValueSink))
   }
 
   fn gen_initialize(&self) -> anyhow::Result<rust::Tokens> {
-    let serial_value_sink = &IMPORTS.serial_value_sink;
-    Ok(quote!($(serial_value_sink) {}))
+    let esp32hal = &IMPORTS.esp32hal;
+    Ok(quote!($(esp32hal)::SerialValueSink {}))
   }
 }

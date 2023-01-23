@@ -28,7 +28,7 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
 
     let peripherals_struct = &format!("{}Peripherals",
       device_name.from_case(Case::Snake).to_case(Case::UpperCamel));
-      
+
     let conf_gen = self.device.gen();
 
     let peripherals = self.device.config.peripherals();
@@ -46,10 +46,17 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
       impl<'a> $(peripherals_struct)<'a> {
         pub fn new() -> anyhow::Result<$(peripherals_struct)<'a>> {
           let peripherals = $(conf_gen.gen_take_peripherals()?);
+
+          $(for peripheral in peripherals =>
+            #[allow(unused_mut)]
+            let mut $(&peripheral.id) = $(peripheral.gen().gen_initialize()?);
+            $(peripheral.gen().gen_modifiers(&peripheral.id)?)$['\r']
+          )  
+
           Ok($(peripherals_struct) {
             __marker: std::marker::PhantomData,
             $(for peripheral in peripherals =>
-              $(&peripheral.id): $(peripheral.gen().gen_initialize()?),$['\r']
+              $(&peripheral.id): $(&peripheral.id).into(),$['\r']
             )  
           })
         }
@@ -59,32 +66,6 @@ impl<'a> CodeGenerator for DeviceGenerator<'a> {
     ))
   }
 }
-
-// let peripheral_gens = self.device.config
-//   .peripherals();
-
-// Ok(quote! {
-//   $(device_gen.generate_imports()?)
-//   $(DocComment([format!("Device {}", self.device.id)]))$['\r']
-//   struct $(peripherals_type)<'a> {$['\r']
-//     __marker: std::marker::PhantomData<&'a ()>,
-//     $(for (id, peripheral_gen) in &peripheral_gens => 
-//        $(*id): $(peripheral_gen.generate_declare()?),$['\r']
-//     )
-//   }
-
-//   impl<'a> $(peripherals_type)<'a> {
-//     pub fn new() -> anyhow::Result<$(peripherals_type)<'a>> {
-//       let $(device_var) = $(device_gen.take_peripherals()?);
-//       Ok($(peripherals_type) {
-//         __marker: std::marker::PhantomData,
-//         $(for (id, peripheral_gen) in &peripheral_gens => 
-//           $(*id): $(peripheral_gen.generate_initialize(device_var)?)?,$['\r']
-//         )  
-//       })
-//     }
-//   }
-// })
 
 pub struct PeripheralGenerator<'a> {
   pub peripheral: &'a Peripheral,
@@ -108,4 +89,7 @@ pub trait DeviceConfigGenerator {
 pub trait PeripheralConfigGenerator {
   fn gen_type(&self) -> anyhow::Result<rust::Tokens>;
   fn gen_initialize(&self) -> anyhow::Result<rust::Tokens>;
+  fn gen_modifiers(&self, id: &str) -> anyhow::Result<rust::Tokens> {
+    Ok(quote!())
+  }
 }

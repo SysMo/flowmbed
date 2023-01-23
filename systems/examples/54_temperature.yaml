@@ -3,6 +3,8 @@ imports:
     paths:
       - sensors
       - sinks
+      - actuators
+      - discrete
 
 devices:
   - id: esp_dev
@@ -12,21 +14,22 @@ devices:
         - id: adc1
           config:
             type: AnalogInputPin
-            adc: adc2
-            resolution: 9bit
+            adc: adc1
+            resolution: 10bit
             calibration: true
-            pin: 12
-            attenuation: 6dB
+            attenuation: 11dB
+            pin: 33
 
-        # - id: button1
-        #   config:
-        #     type: DigitalInputPin
-        #     pin: 9
+        - id: button1
+          config:
+            type: DigitalInputPin
+            pin: 16
+            pull: up
 
-        # - id: led1
-        #   config:
-        #     type: DigitalOutputPin
-        #     pin: 2
+        - id: led1
+          config:
+            type: DigitalOutputPin
+            pin: 2
 
 
         # - id: t1
@@ -37,7 +40,10 @@ devices:
         #       pin: 4
         #       open_drain: true
 
-        - id: serial
+        - id: serial1
+          config:
+            type: SerialValueSink
+        - id: serial2
           config:
             type: SerialValueSink
 
@@ -50,19 +56,39 @@ circuits:
         peripherals:
           sensor: adc1
 
-      - id: sink_adc
+      - id: sensor_button
+        kind: sensors::OneShotDigital
+        peripherals:
+          sensor: button1
+
+      - id: count_trigger
+        kind: discrete::CountingTrigger
+        parameters:
+          pulses_up: 1
+          pulses_down: 2
+          initial_count: 0        
+
+      - id: print1
         kind: sinks::FloatSink
         peripherals:
-          sink: serial
+          sink: serial1
+      - id: print2
+        kind: sinks::FloatSink
+        peripherals:
+          sink: serial2
 
-      # - id: sink_button
-      #   kind: sinks::BoolSink
-      #   peripherals:
-      #     sink: serial
+      - id: led1
+        kind: actuators::DigitalOutput
+        peripherals:
+          output: led1
+
+
 
     connections:
-      - sink_adc.input: sensor_adc.output
-
+      - count_trigger.input: sensor_button.output
+      - led1.input: count_trigger.output
+      - print1.input: sensor_adc.output
+      - print2.input: sensor_adc.output
 
 tasks:
   - !FixedStepTask

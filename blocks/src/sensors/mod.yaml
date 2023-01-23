@@ -8,3 +8,11 @@ blocks:
       - name: sensor
         direction: In
         trait: flowmbed_peripherals::sensors::traits::OneShotAnalog
+  
+  - name: OneShotDigital
+    outputs:
+      - output: [Bool, false]
+    peripherals:
+      - name: sensor
+        direction: In
+        trait: flowmbed_peripherals::sensors::traits::OneShotDigital

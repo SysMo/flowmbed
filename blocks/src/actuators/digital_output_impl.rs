@@ -29,9 +29,9 @@ struct Aux;
 impl Aux {
   fn apply(block: &mut DigitalOutput, value: bool) -> anyhow::Result<()> {
     if value {
-      block.out.set_high()?;
+      block.output.set_high()?;
     } else {
-      block.out.set_low()?;
+      block.output.set_low()?;
     }
     Ok(())
   }
