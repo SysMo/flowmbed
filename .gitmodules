@@ -1,0 +1,3 @@
+[submodule "doc_internal"]
+	path = doc_internal
+	url = git@github.com:SysMo/flowmbed_internal_doc.git
