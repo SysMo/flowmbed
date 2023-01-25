@@ -1,10 +1,10 @@
 use flowmbed_dynsys::core::{Float, Bool};
 
-pub trait OneShotAnalog {
+pub trait AnalogReader {
   fn read(&mut self) -> anyhow::Result<Float>;
 }
 
-pub trait OneShotDigital {
+pub trait DigitalReader {
   fn read(&mut self) -> anyhow::Result<Bool>;
 }
 

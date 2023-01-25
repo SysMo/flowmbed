@@ -8,7 +8,7 @@ pub struct DigitalInputPin<'a, P: gpio::InputPin> (
   pub gpio::PinDriver<'a, P, gpio::Input>
 );
 
-impl<'a, P: gpio::InputPin> sensors::OneShotDigital for DigitalInputPin<'a, P> {
+impl<'a, P: gpio::InputPin> sensors::DigitalReader for DigitalInputPin<'a, P> {
   fn read(&mut self) -> anyhow::Result<Bool> {
     Ok(self.0.is_high())
   }

@@ -59,8 +59,8 @@ impl<'a> EspDevPeripherals<'a> {
 
 /// Declare circuit structure
 struct TempMeasCircuit<'a> {
-    sensor_adc: sensors::OneShotAnalog<'a>,
-    sensor_button: sensors::OneShotDigital<'a>,
+    sensor_adc: sensors::AnalogReaderBlock<'a>,
+    sensor_button: sensors::DigitalReaderBlock<'a>,
     count_trigger: discrete::CountingTrigger<'a>,
     print1: sinks::FloatSink<'a>,
     print2: sinks::FloatSink<'a>,
@@ -77,9 +77,9 @@ impl<'a> TempMeasCircuit<'a> {
         let mut builder = fds_core::SystemStorageBuilder::new(storage);
 
         let mut circuit = TempMeasCircuit {
-            sensor_adc: {sensors::OneShotAnalog
+            sensor_adc: {sensors::AnalogReaderBlock
                 ::builder().sensor(&mut peripherals.adc1).build(&mut builder)},
-            sensor_button: {sensors::OneShotDigital
+            sensor_button: {sensors::DigitalReaderBlock
                 ::builder().sensor(&mut peripherals.button1).build(&mut builder)},
             count_trigger: {discrete::CountingTrigger
                 ::builder().initial_count(0).pulses_up(1).pulses_down(2).build(&mut builder)},
@@ -138,8 +138,8 @@ use const_default::ConstDefault;
 impl<'a> RequiresStorage for TempMeasCircuit<'a> {
     const SIZE: fds_core::StorageSize =
         fds_core::StorageSize::DEFAULT
-            .add(sensors::OneShotAnalog::SIZE)
-            .add(sensors::OneShotDigital::SIZE)
+            .add(sensors::AnalogReaderBlock::SIZE)
+            .add(sensors::DigitalReaderBlock::SIZE)
             .add(discrete::CountingTrigger::SIZE)
             .add(sinks::FloatSink::SIZE)
             .add(sinks::FloatSink::SIZE)

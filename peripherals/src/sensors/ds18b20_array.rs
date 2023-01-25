@@ -7,7 +7,7 @@ use core::fmt::{Debug, Display};
 pub use ds18b20::Resolution;
 use flowmbed_dynsys::core::Float;
 
-use super::traits::OneShotAnalog;
+use super::traits::AnalogReader;
 trait IntoAnyhow<V, E> where E: std::fmt::Debug {
   fn into_anyhow(self) -> anyhow::Result<V>;
 }
@@ -161,7 +161,7 @@ where P: OutputPin<Error = E> + InputPin<Error = E>,
   }
 }
 
-impl<P, E, D> OneShotAnalog for DS18B20Array<P, E, D>
+impl<P, E, D> AnalogReader for DS18B20Array<P, E, D>
 where P: OutputPin<Error = E> + InputPin<Error = E>, 
       E: Debug + Display + std::marker::Sync,
       D: DelayUs<u16> + DelayMs<u16>

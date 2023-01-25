@@ -1,6 +1,6 @@
-mod one_shot_analog_auto;
-mod one_shot_analog_impl;
-pub use one_shot_analog_auto::OneShotAnalog;
-mod one_shot_digital_auto;
-mod one_shot_digital_impl;
-pub use one_shot_digital_auto::OneShotDigital;
+mod analog_reader_block_auto;
+mod analog_reader_block_impl;
+pub use analog_reader_block_auto::AnalogReaderBlock;
+mod digital_reader_block_auto;
+mod digital_reader_block_impl;
+pub use digital_reader_block_auto::DigitalReaderBlock;

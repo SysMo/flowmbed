@@ -64,12 +64,12 @@ circuits:
     device: esp_dev
     blocks:
       - id: sensor_adc
-        kind: sensors::OneShotAnalog
+        kind: sensors::AnalogReaderBlock
         peripherals:
           sensor: adc1
 
       - id: sensor_button
-        kind: sensors::OneShotDigital
+        kind: sensors::DigitalReaderBlock
         peripherals:
           sensor: button1
 

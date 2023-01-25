@@ -4,11 +4,9 @@ use esp_idf_hal::gpio;
 use esp_idf_hal::adc;
 use flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel;
 use flowmbed_peripherals::sensors::{DS18B20Array, DS18B20Resolution};
-use flowmbed_peripherals::sensors::traits::{OneShotAnalog};
+use flowmbed_peripherals::sensors::traits::{AnalogReader};
 use flowmbed_esp32::hal;
 use log::*;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
 
 fn test_adc() -> anyhow::Result<()> {
   let peripherals = Peripherals::take().unwrap();
@@ -30,11 +28,11 @@ fn get_field_ref<'a, T>(opt: &'a mut Option<T>) -> anyhow::Result<&'a mut T> {
   opt.as_mut().ok_or_else(|| anyhow::anyhow!("Empty field"))
 }
 
-struct Peripherals_Multichannel<'a> {
-  adc_reader: hal::AnalogReaderMultiChannel<'a, adc::ADC1, 2>,
+struct PeripheralsMultichannel {
+  adc_reader: Box<dyn AnalogReaderMultiChannel<2>>,
 }
 
-fn init_multichannel_adc() -> anyhow::Result<()> {
+fn init_multichannel_adc() -> anyhow::Result<PeripheralsMultichannel> {
   let peripherals = Peripherals::take().unwrap();
 
   let mut adc_channel1: hal::AnalogChannel<gpio::Gpio32, adc::Atten11dB<adc::ADC1>> = 
@@ -44,30 +42,31 @@ fn init_multichannel_adc() -> anyhow::Result<()> {
   let adc_channel_config = adc::config::Config::new()
     .calibration(true);
   
-  let mut p = Peripherals_Multichannel {
-    adc_reader: hal::AnalogReaderMultiChannel {
+  let mut p = PeripheralsMultichannel {
+    adc_reader: Box::new(hal::AnalogReaderMultiChannel {
       driver: adc::AdcDriver::new(
         peripherals.adc1,
         &adc_channel_config
       )?,
       channels: [
-        &mut adc_channel1,
-        &mut adc_channel2,
+        Box::new(adc_channel1),
+        Box::new(adc_channel2),
       ]
-  }};
+    })
+  };
 
+
+  Ok(p)
+}
+
+fn test_multichannel_adc<'a>(mut p: PeripheralsMultichannel) -> anyhow::Result<()> {
   loop {
     let values = p.adc_reader.read_all()?;
     info!("{:?}", values);
     std::thread::sleep(std::time::Duration::from_millis(100));
   }
-
   Ok(())
 }
-
-// fn test_multichannel_adc<'a>() -> anyhow::Result<Peripherals_Multichannel<'a>> {
-
-// }
 
 fn test_ds18b20() -> anyhow::Result<()> {
   let peripherals = Peripherals::take().unwrap();
@@ -83,8 +82,9 @@ fn test_ds18b20() -> anyhow::Result<()> {
 fn main() -> anyhow::Result<()> {
   esp_idf_svc::log::EspLogger::initialize_default();
 
-  // test_adc();
-  init_multichannel_adc();
+
+  let p = init_multichannel_adc()?;
+  test_multichannel_adc(p);
   // test_multichannel_adc();
   // test_ds18b20();
 

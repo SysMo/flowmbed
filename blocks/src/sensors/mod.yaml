@@ -1,18 +1,18 @@
 ---
 
 blocks:
-  - name: OneShotAnalog
+  - name: AnalogReaderBlock
     outputs:
       - output: [Float, 0.0]
     peripherals:
       - name: sensor
         direction: In
-        trait: flowmbed_peripherals::sensors::traits::OneShotAnalog
+        trait: flowmbed_peripherals::sensors::traits::AnalogReader
   
-  - name: OneShotDigital
+  - name: DigitalReaderBlock
     outputs:
       - output: [Bool, false]
     peripherals:
       - name: sensor
         direction: In
-        trait: flowmbed_peripherals::sensors::traits::OneShotDigital
+        trait: flowmbed_peripherals::sensors::traits::DigitalReader

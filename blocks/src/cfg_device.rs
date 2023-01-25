@@ -3,10 +3,8 @@ use cfg_if::cfg_if;
 cfg_if!{
   if #[cfg(feature = "esp32")] {
     pub type HalError = esp_idf_sys::EspError;
-    pub use esp_idf_hal as esp32_hal;  
   } else {
     pub type HalError = anyhow::Error;
-    pub use esp32_virtual_hal as esp32_hal;  
   }
 }
 

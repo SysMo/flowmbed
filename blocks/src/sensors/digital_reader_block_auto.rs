@@ -2,18 +2,18 @@ use flowmbed_dynsys::core as dscore;
 
 /// Declare the block struct
 #[allow(dead_code)]
-pub struct OneShotDigital<'a> {
+pub struct DigitalReaderBlock<'a> {
   // Inputs
   // Outputs
   pub output: dscore::Output<'a, dscore::Bool>,
   // Discrete states
   // Peripherals
-  pub sensor: &'a mut dyn flowmbed_peripherals::sensors::traits::OneShotDigital,
+  pub sensor: &'a mut dyn flowmbed_peripherals::sensors::traits::DigitalReader,
 }
 
 /// Implement the block struct
 #[allow(dead_code)]
-impl<'a> OneShotDigital<'a> {
+impl<'a> DigitalReaderBlock<'a> {
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
@@ -24,21 +24,21 @@ impl<'a> OneShotDigital<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_sensor: Option<&'a mut dyn flowmbed_peripherals::sensors::traits::OneShotDigital>,
+  periph_sensor: Option<&'a mut dyn flowmbed_peripherals::sensors::traits::DigitalReader>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn sensor(mut self, v: &'a mut dyn flowmbed_peripherals::sensors::traits::OneShotDigital) -> Self {
+  pub fn sensor(mut self, v: &'a mut dyn flowmbed_peripherals::sensors::traits::DigitalReader) -> Self {
     self.periph_sensor = Some(v);
     self
   }
 }
 
-impl<'a> dscore::BlockBuilder<'a, OneShotDigital<'a>> for Builder<'a> {
-  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> OneShotDigital<'a> {
-    OneShotDigital {
+impl<'a> dscore::BlockBuilder<'a, DigitalReaderBlock<'a>> for Builder<'a> {
+  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> DigitalReaderBlock<'a> {
+    DigitalReaderBlock {
 
       output: storage_builder.create_output(false),
 
@@ -48,7 +48,7 @@ impl<'a> dscore::BlockBuilder<'a, OneShotDigital<'a>> for Builder<'a> {
   }
 }
 
-impl<'a> dscore::RequiresStorage for OneShotDigital<'a> {
+impl<'a> dscore::RequiresStorage for DigitalReaderBlock<'a> {
   const SIZE: dscore::StorageSize = dscore::StorageSize {
     r_param: 0, b_param: 0, i_param: 0,
     r_out: 0, b_out: 1, i_out: 0,

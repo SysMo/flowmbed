@@ -1,10 +1,10 @@
 use flowmbed_dynsys::core as dscore;
 
-use super::one_shot_digital_auto::*;
+use super::analog_reader_block_auto::*;
 
 /// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem for OneShotDigital<'a> {
+impl<'a> dscore::DynamicalSystem for AnalogReaderBlock<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.output.initialize(self.sensor.read()?);
@@ -21,8 +21,4 @@ impl<'a> dscore::DynamicalSystem for OneShotDigital<'a> {
 }
 
 // >>> Begin section @Begin section @Helpers
-struct Aux;
-impl Aux {
-
-}
 // >>> End section @Begin section @Helpers

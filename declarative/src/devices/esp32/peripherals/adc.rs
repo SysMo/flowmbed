@@ -129,7 +129,6 @@ impl PeripheralConfigGenerator for AnalogChannel {
     );
     let attenuation = &self.attenuation.clone().unwrap_or_default();
     Ok(quote!(
-      // hal::AnalogChannel<gpio::Gpio32, adc::Atten11dB<adc::ADC1>>
       $(hal)::AnalogChannel<'_, _, $(adc)::$(attenuation.to_string())<_>>
     ))
 
