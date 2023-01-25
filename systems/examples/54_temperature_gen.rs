@@ -82,7 +82,7 @@ impl<'a> TempMeasCircuit<'a> {
             sensor_button: {sensors::OneShotDigital
                 ::builder().sensor(&mut peripherals.button1).build(&mut builder)},
             count_trigger: {discrete::CountingTrigger
-                ::builder().pulses_down(2).initial_count(0).pulses_up(1).build(&mut builder)},
+                ::builder().initial_count(0).pulses_up(1).pulses_down(2).build(&mut builder)},
             print1: {sinks::FloatSink
                 ::builder().sink(&mut peripherals.serial1).build(&mut builder)},
             print2: {sinks::FloatSink

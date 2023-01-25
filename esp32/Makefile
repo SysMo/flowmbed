@@ -24,10 +24,10 @@ deepclean:
 # 	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 example/build/%: build/pre
-	cargo espflash save-image --release --example $* ESP32 program.bin
+	. ~/export-esp.sh && cargo espflash save-image --release --example $* ESP32 program.bin
 
 example/flash/%: build/pre
-	cargo espflash --release --example $* --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+	. ~/export-esp.sh && cargo espflash --release --example $* --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
 
 monitor:
 	cargo espflash serial-monitor ${SERIAL}
@@ -43,6 +43,9 @@ monitor:
 
 04_ds18b20/build:  example/build/04_ds18b20
 04_ds18b20/flash:  example/flash/04_ds18b20
+
+10_gpio/build:  example/build/10_gpio
+10_gpio/flash:  example/flash/10_gpio
 
 54_temperature_gen/build:  example/build/54_temperature_gen
 54_temperature_gen/flash:  example/flash/54_temperature_gen

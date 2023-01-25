@@ -13,12 +13,24 @@ devices:
       peripherals:
         - id: adc1
           config:
-            type: AnalogInputPin
+            type: AnalogReader
             adc: adc1
             resolution: 10bit
             calibration: true
-            attenuation: 11dB
             pin: 33
+            attenuation: 11dB
+        # - id: adc1
+        #   config:
+        #     type: AnalogReaderMultiChannel
+        #     adc: adc1
+        #     resolution: 10bit
+        #     calibration: true
+        #     channels:
+        #       - pin: 33
+        #         attenuation: 11dB
+        #       - pin: 34
+        #         attenuation: 11dB
+              
 
         - id: button1
           config:

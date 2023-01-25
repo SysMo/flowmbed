@@ -27,14 +27,16 @@ use lazy_static::lazy_static;
 #[allow(dead_code)]
 struct Imports {
   pub gpio: rust::Import,
-  ledc: rust::Import,
-  Peripherals: rust::Import,
-  esp32hal: rust::Import,
+  pub adc: rust::Import,
+  pub ledc: rust::Import,
+  pub Peripherals: rust::Import,  
+  pub esp32hal: rust::Import,
 }
 
 lazy_static! {
   static ref IMPORTS: Imports = Imports {
     gpio: rust::import("esp_idf_hal", "gpio"),
+    adc: rust::import("esp_idf_hal", "adc"),
     ledc: rust::import("esp_idf_hal", "ledc"),
     Peripherals: rust::import("esp_idf_hal::peripherals", "Peripherals"),
     esp32hal: rust::import("flowmbed_esp32", "hal").with_alias("esp32hal")
