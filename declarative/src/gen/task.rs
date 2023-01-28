@@ -1,4 +1,4 @@
-use crate::dsl::task::{TaskConfigEnum, FixedStepTaskConfig};
+use crate::{dsl::task::{TaskConfigEnum, FixedStepTaskConfig}, util::GenerationContext};
 use super::traits::CodeGenerator;
 use genco::prelude::{rust, quote};
 
@@ -13,10 +13,10 @@ impl<'a> TaskGenerator<'a> {
 }
 
 impl<'a> CodeGenerator for TaskGenerator<'a> {  
-  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
     match self.task {
       TaskConfigEnum::FixedStepTask(x) => 
-        FixedStepTaskGenerator::new(x).generate()
+        FixedStepTaskGenerator::new(x).generate(&context)
     }
   }
 }
@@ -36,7 +36,7 @@ impl<'a> FixedStepTaskGenerator<'a> {
 }
 
 impl<'a> CodeGenerator for FixedStepTaskGenerator<'a> {
-  fn generate(&self) -> anyhow::Result<genco::prelude::rust::Tokens> {
+  fn generate(&self, _: &GenerationContext) -> anyhow::Result<genco::prelude::rust::Tokens> {
       let task_name = &self.task.id;
       let ciruit_type = &self.task.circuit;
 

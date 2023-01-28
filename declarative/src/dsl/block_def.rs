@@ -1,7 +1,8 @@
 use std::{collections::HashMap, str::FromStr};
 use serde::{Serialize, Deserialize};
-use super::{FieldType, FieldValue, references::QualifiedPath, rust::TypeReference};
+use super::{FieldType, FieldValue, rust::{RustTypeRef, StructTypeRef, TraitTypeRef}};
 use crate::util::{serde_helpers as sh};
+use crate::util::QualifiedPath;
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)] 
@@ -169,26 +170,23 @@ impl PeripheralReference {
     }
   }
 
-  pub fn mut_ref(&self, lifetime: Option<&str>) -> TypeReference {
-    let mut gats = HashMap::new();
+  pub fn mut_ref(&self, lifetime: Option<&str>) -> RustTypeRef {
+    //let mut gats = HashMap::new();
     // gats.insert("Error".to_owned(), "HalError".to_owned().into());
     match self {
         PeripheralReference::Type(x) => 
-          TypeReference {
+          RustTypeRef::Struct(StructTypeRef {
             qpath: x.qpath.clone(),
             mutable: true,
-            is_trait: false,
-            lifetime: lifetime.map(|x| x.to_owned()),
-            gats
-        },
+            lifetime: lifetime.map(|x| x.to_owned())
+        }),
         PeripheralReference::Trait(x) =>           
-          TypeReference {
+        RustTypeRef::Trait(TraitTypeRef {
             qpath: x.qpath.clone(),
             mutable: true,
-            is_trait: true,
             lifetime: lifetime.map(|x| x.to_owned()),
-            gats
-        },
+            gats: HashMap::new()
+        }),
     }
   }
 }

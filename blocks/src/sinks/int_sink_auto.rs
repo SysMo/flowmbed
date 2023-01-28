@@ -1,4 +1,5 @@
 use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
 #[allow(dead_code)]
@@ -8,7 +9,7 @@ pub struct IntSink<'a> {
   // Outputs
   // Discrete states
   // Peripherals
-  pub sink: &'a mut dyn flowmbed_peripherals::sinks::traits::ValueSink,
+  pub sink: DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>,
 }
 
 /// Implement the block struct
@@ -24,13 +25,13 @@ impl<'a> IntSink<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_sink: Option<&'a mut dyn flowmbed_peripherals::sinks::traits::ValueSink>,
+  periph_sink: Option<DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn sink(mut self, v: &'a mut dyn flowmbed_peripherals::sinks::traits::ValueSink) -> Self {
+  pub fn sink(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>) -> Self {
     self.periph_sink = Some(v);
     self
   }

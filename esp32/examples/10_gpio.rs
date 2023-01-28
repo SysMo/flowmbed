@@ -1,3 +1,7 @@
+#![feature(once_cell)]
+
+use const_default::ConstDefault;
+use const_default_derive::ConstDefault;
 use esp_idf_hal::peripherals::Peripherals;
 use esp_idf_hal::delay::Ets;
 use esp_idf_hal::gpio;
@@ -5,8 +9,11 @@ use esp_idf_hal::adc;
 use flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel;
 use flowmbed_peripherals::sensors::{DS18B20Array, DS18B20Resolution};
 use flowmbed_peripherals::sensors::traits::{AnalogReader};
+use flowmbed_dynsys::{util::containers::RefOnce};
 use flowmbed_esp32::hal;
+use lazy_static::lazy_static;
 use log::*;
+
 
 fn test_adc() -> anyhow::Result<()> {
   let peripherals = Peripherals::take().unwrap();
@@ -28,40 +35,48 @@ fn get_field_ref<'a, T>(opt: &'a mut Option<T>) -> anyhow::Result<&'a mut T> {
   opt.as_mut().ok_or_else(|| anyhow::anyhow!("Empty field"))
 }
 
-struct PeripheralsMultichannel {
-  adc_reader: Box<dyn AnalogReaderMultiChannel<2>>,
+#[derive(ConstDefault)]
+struct PeripheralsMultichannel<'a> {
+  pub adc_channel1: RefOnce<hal::AnalogChannel<'a, gpio::Gpio32, adc::Atten11dB<adc::ADC1>>>,
+  pub adc_channel2: RefOnce<hal::AnalogChannel<'a, gpio::Gpio33, adc::Atten11dB<adc::ADC1>>>,
+  pub adc_reader: RefOnce<hal::AnalogReaderMultiChannel<'a, adc::ADC1, 2>>,
 }
 
-fn init_multichannel_adc() -> anyhow::Result<PeripheralsMultichannel> {
-  let peripherals = Peripherals::take().unwrap();
 
-  let mut adc_channel1: hal::AnalogChannel<gpio::Gpio32, adc::Atten11dB<adc::ADC1>> = 
-    hal::AnalogChannel::new(peripherals.pins.gpio32)?;
-  let mut adc_channel2: hal::AnalogChannel<gpio::Gpio33, adc::Atten11dB<adc::ADC1>> = 
-    hal::AnalogChannel::new(peripherals.pins.gpio33)?;
+fn init_multichannel_adc() -> anyhow::Result<&'static PeripheralsMultichannel<'static>> {
+  static MCU_PERIPHERALS: PeripheralsMultichannel<'static> = PeripheralsMultichannel::DEFAULT;
+
+  let p = Peripherals::take().unwrap();
+
+  MCU_PERIPHERALS.adc_channel1.init(
+    hal::AnalogChannel::new(p.pins.gpio32)?
+  );
+  MCU_PERIPHERALS.adc_channel2.init(
+    hal::AnalogChannel::new(p.pins.gpio33)?
+  );
+  
   let adc_channel_config = adc::config::Config::new()
     .calibration(true);
   
-  let mut p = PeripheralsMultichannel {
-    adc_reader: Box::new(hal::AnalogReaderMultiChannel {
+  MCU_PERIPHERALS.adc_reader.init(
+    hal::AnalogReaderMultiChannel {
       driver: adc::AdcDriver::new(
-        peripherals.adc1,
+        p.adc1,
         &adc_channel_config
       )?,
       channels: [
-        Box::new(adc_channel1),
-        Box::new(adc_channel2),
+        MCU_PERIPHERALS.adc_channel1.ref_mut()?,
+        MCU_PERIPHERALS.adc_channel2.ref_mut()?,
       ]
-    })
-  };
+    }
+  );
 
-
-  Ok(p)
+  Ok(&MCU_PERIPHERALS)
 }
 
-fn test_multichannel_adc<'a>(mut p: PeripheralsMultichannel) -> anyhow::Result<()> {
+fn test_multichannel_adc<'a>(p: &PeripheralsMultichannel) -> anyhow::Result<()> {
   loop {
-    let values = p.adc_reader.read_all()?;
+    let values = p.adc_reader.ref_mut()?.read_all()?;
     info!("{:?}", values);
     std::thread::sleep(std::time::Duration::from_millis(100));
   }
@@ -84,7 +99,7 @@ fn main() -> anyhow::Result<()> {
 
 
   let p = init_multichannel_adc()?;
-  test_multichannel_adc(p);
+  test_multichannel_adc(p)?;
   // test_multichannel_adc();
   // test_ds18b20();
 

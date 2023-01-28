@@ -1,6 +1,9 @@
 mod analog_reader_block_auto;
 mod analog_reader_block_impl;
 pub use analog_reader_block_auto::AnalogReaderBlock;
+mod analog_reader_multi_channel_block_auto;
+mod analog_reader_multi_channel_block_impl;
+pub use analog_reader_multi_channel_block_auto::AnalogReaderMultiChannelBlock;
 mod digital_reader_block_auto;
 mod digital_reader_block_impl;
 pub use digital_reader_block_auto::DigitalReaderBlock;

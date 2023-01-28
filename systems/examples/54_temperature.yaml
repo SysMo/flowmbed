@@ -11,25 +11,25 @@ devices:
     config:
       type: ESP32
       peripherals:
-        - id: adc1
-          config:
-            type: AnalogReader
-            adc: adc1
-            resolution: 10bit
-            calibration: true
-            pin: 33
-            attenuation: 11dB
         # - id: adc1
         #   config:
-        #     type: AnalogReaderMultiChannel
+        #     type: AnalogReader
         #     adc: adc1
         #     resolution: 10bit
         #     calibration: true
-        #     channels:
-        #       - pin: 33
-        #         attenuation: 11dB
-        #       - pin: 34
-        #         attenuation: 11dB
+        #     pin: 33
+        #     attenuation: 11dB
+        - id: adc1
+          config:
+            type: AnalogReaderMultiChannel
+            adc: adc1
+            resolution: 10bit
+            calibration: true
+            channels:
+              - pin: 32
+                attenuation: 11dB
+              - pin: 33
+                attenuation: 11dB
               
 
         - id: button1
@@ -64,7 +64,7 @@ circuits:
     device: esp_dev
     blocks:
       - id: sensor_adc
-        kind: sensors::AnalogReaderBlock
+        kind: sensors::AnalogReaderMultiChannelBlock
         peripherals:
           sensor: adc1
 
@@ -99,12 +99,12 @@ circuits:
     connections:
       - count_trigger.input: sensor_button.output
       - led1.input: count_trigger.output
-      - print1.input: sensor_adc.output
-      - print2.input: sensor_adc.output
+      - print1.input: sensor_adc.output1
+      - print2.input: sensor_adc.output2
 
 tasks:
   - !FixedStepTask
       id: MainTask
       circuit: TempMeasCircuit
-      t_step: 0.01
+      t_step: 0.1
       speedup: 1.0

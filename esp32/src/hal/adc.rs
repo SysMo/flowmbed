@@ -1,5 +1,5 @@
 use flowmbed_peripherals::sensors::traits as sensors;
-use flowmbed_dynsys::core::Float;
+use flowmbed_dynsys::core::{Float, DynRefMut};
 use esp_idf_hal::adc;
 use esp_idf_hal::gpio;
 
@@ -19,27 +19,27 @@ where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
   }
 }
 
-pub trait ESP32_AnalogChannelReader<'a, D: adc::Adc> {
+pub trait Esp32AnalogChannelReader<'a, D: adc::Adc> {
   fn read(&mut self, driver: &mut adc::AdcDriver<'a, D>) -> anyhow::Result<Float>;
 }
 
-pub struct ESP32_AnalogChannel<'a, P: gpio::ADCPin, Attn> {
+pub struct Esp32AnalogChannel<'a, P: gpio::ADCPin, Attn> {
   pub channel: adc::AdcChannelDriver<'a, P, Attn>
 }
 
-impl<'a, P: gpio::ADCPin, Attn> ESP32_AnalogChannel<'a, P, Attn>
+impl<'a, P: gpio::ADCPin, Attn> Esp32AnalogChannel<'a, P, Attn>
 where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc>
 {
   pub fn new(pin: P) -> anyhow::Result<Self> {
-    Ok(ESP32_AnalogChannel {
+    Ok(Esp32AnalogChannel {
       channel: adc::AdcChannelDriver::new(pin)?
     })
   }
 }
 
 
-impl<'a, D: adc::Adc, P: gpio::ADCPin, Attn> ESP32_AnalogChannelReader<'a, D>
-for ESP32_AnalogChannel<'a, P, Attn> 
+impl<'a, D: adc::Adc, P: gpio::ADCPin, Attn> Esp32AnalogChannelReader<'a, D>
+for Esp32AnalogChannel<'a, P, Attn> 
 where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
   fn read(&mut self, driver: &mut adc::AdcDriver<'a, D>) -> Result<Float, anyhow::Error> {
     driver.read(&mut self.channel)
@@ -48,14 +48,14 @@ where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
   }
 }
 
-pub struct ESP32_AnalogReaderMultiChannel<'a, D: adc::Adc, const N: usize>
+pub struct Esp32AnalogReaderMultiChannel<'a, D: adc::Adc, const N: usize>
 {
   pub driver: adc::AdcDriver<'a, D>,
-  pub channels: [Box<dyn ESP32_AnalogChannelReader<'a, D>>; N]
+  pub channels: [DynRefMut<'a, dyn Esp32AnalogChannelReader<'a, D>>; N]
 }
 
 impl<'a, D: adc::Adc, const N: usize> sensors::AnalogReaderMultiChannel<N>
-for ESP32_AnalogReaderMultiChannel<'a, D, N> {
+for Esp32AnalogReaderMultiChannel<'a, D, N> {
   fn read_channel(&mut self, id: usize) -> anyhow::Result<f32> {
     self.channels[id].read(&mut self.driver)
   }

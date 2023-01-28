@@ -20,6 +20,7 @@ anyhow = {version = "1", features = ["backtrace"]}
 # toml-cfg = "0.1"
 log = "0.4"
 const-default = "1.0"
+const-default-derive = "*"
 
 esp-idf-sys = { version = "0.32", features = ["binstart"] }
 embedded-hal = "=1.0.0-alpha.9"

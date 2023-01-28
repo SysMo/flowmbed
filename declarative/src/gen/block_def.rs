@@ -1,8 +1,9 @@
 use std::fs;
 use std::path;
 use genco::prelude::{rust, quote};
-use crate::dsl::rust::TypeReference;
-use crate::dsl::{block_def::{BlockDefinition, BlockModule}, FieldType, FieldValue, FieldKind, StorageSize};
+use crate::dsl::rust::{RustTypeRef};
+use crate::dsl::{block_def::{BlockDefinition, BlockModule}, FieldType, FieldKind, StorageSize};
+use crate::util::GenerationContext;
 use super::file_generator::FileGenerator;
 use super::traits::CodeGenerator;
 use super::comments::{Comment, DocComment, BeginSection, EndSection};
@@ -151,7 +152,7 @@ impl<'a> BlockAutoGenerator<'a> {
     )
   }
 
-  fn decl_peripheral(&self, name: &str, tpe_ref: TypeReference) -> rust::Tokens {
+  fn decl_peripheral(&self, name: &str, tpe_ref: RustTypeRef) -> rust::Tokens {
     quote!(
       pub $(name): $(tpe_ref)
     )
@@ -224,7 +225,7 @@ impl<'a> BlockAutoGenerator<'a> {
     )
   }
 
-  fn create_peripheral_setter(&self, name: &str, tpe_ref: TypeReference) -> rust::Tokens {
+  fn create_peripheral_setter(&self, name: &str, tpe_ref: RustTypeRef) -> rust::Tokens {
     quote!(
       pub fn $(name)(mut self, v: $(tpe_ref)) -> Self {
         self.periph_$(name) = Some(v);
@@ -342,7 +343,7 @@ impl<'a> BlockAutoGenerator<'a> {
 }
 
 impl<'a> CodeGenerator for BlockAutoGenerator<'a> {
-  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
     
     Ok(quote!(
       $(self.declare_block()?)
@@ -380,7 +381,7 @@ impl<'a> BlockImplGenerator<'a> {
 }
 
 impl<'a> CodeGenerator for BlockImplGenerator<'a> {
-  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
     let ds_core = &self.dynsys_core;
 
     Ok(quote!(
@@ -430,7 +431,7 @@ impl ModFileGenerator {
 }
 
 impl CodeGenerator for ModFileGenerator {
-  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
     Ok(quote!(
       $(for (file, block) in &self.block_files join ($['\r']) => 
         mod $(file)auto;

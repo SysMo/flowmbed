@@ -1,6 +1,8 @@
 use std::path;
 use std::fs;
 use log::*;
+use crate::util::GenerationContext;
+
 use super::traits::CodeGenerator;
 use genco::fmt;
 use genco::prelude::{rust, Rust};
@@ -25,21 +27,10 @@ impl<'a, P: AsRef<path::Path>> FileGenerator<'a, P> {
     self
   }
 
-  // pub fn generate(&self) -> anyhow::Result<()> {
-  //   let file_path = self.base_path.as_ref().join(self.file_name);
-  //   if !file_path.exists() || self.overwrite == true {
-  //     let text = self.gen.generate()?.to_file_string()?;
-  //     info!("Generating file {}", file_path.display());
-  //     fs::write(file_path, text)?;  
-  //   }
-  //   Ok(())
-  // }
-
   pub fn generate(&self) -> anyhow::Result<()> {
     let file_path = self.base_path.as_ref().join(self.file_name);
     if !file_path.exists() || self.overwrite == true {
-      // let text = self.gen.generate()?.to_file_string()?;
-      // fs::write(file_path, text)?;  
+
       info!("Generating file {}", file_path.display());
       let out_file = fs::File::create(file_path)?;
       let mut w = fmt::IoWriter::new(out_file);
@@ -49,7 +40,7 @@ impl<'a, P: AsRef<path::Path>> FileGenerator<'a, P> {
       let mut formatter = w.as_formatter(&fmt);
       let config = rust::Config::default();
       
-      let tokens = self.gen.generate()?;
+      let tokens = self.gen.generate(&GenerationContext::root())?;
       tokens.format_file(&mut formatter, &config)?;
 
 

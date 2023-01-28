@@ -1,9 +1,11 @@
 use crate::dsl::FieldValue;
 use crate::dsl::circuit::{CircuitConfig, BlockConnection};
 use crate::dsl::block_instance::{BlockInstance};
+use crate::util::GenerationContext;
 use super::traits::CodeGenerator;
 use super::resolver::NameResolver;
 use genco::prelude::{rust, quote};
+#[allow(unused_imports)]
 use super::comments::{Comment, DocComment};
 use convert_case::{Case, Casing};
 
@@ -67,7 +69,7 @@ impl<'a> CircuitGenerator<'a> {
 
     block.peripherals.iter().for_each(|periph_ref|
       modifiers.push(quote!(
-        .$(periph_ref.0)(&mut $(peripherals_name).$(periph_ref.1))
+        .$(periph_ref.0)($(peripherals_name).$(periph_ref.1).mut_ref()?)
       ))
     );
 
@@ -103,7 +105,7 @@ impl<'a> CircuitGenerator<'a> {
 }
 
 impl<'a> CodeGenerator for CircuitGenerator<'a> {
-  fn generate(&self) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
     let circuit_name = &self.circuit.id;
 
     let peripherals_struct = &format!("{}Peripherals",
@@ -120,7 +122,7 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
       $(DocComment(["Implement circuit structure"]))
       impl<'a> $(circuit_name)<'a> {
         pub fn new<ST: $(&self.dynsys_core)::DefaultSystemStrorage>(
-          storage: &'a ST, peripherals: &'a mut $(peripherals_struct)
+          storage: &'a ST, peripherals: &'a $(peripherals_struct)
         ) -> anyhow::Result<$(circuit_name)<'a>> {
           use $(&self.dynsys_core)::BlockBuilder;
 

@@ -9,6 +9,15 @@ blocks:
         direction: In
         trait: flowmbed_peripherals::sensors::traits::AnalogReader
   
+  - name: AnalogReaderMultiChannelBlock
+    outputs:
+      - output1: [Float, 0.0]
+      - output2: [Float, 0.0]
+    peripherals:
+      - name: sensor
+        direction: In
+        trait: flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<2>
+
   - name: DigitalReaderBlock
     outputs:
       - output: [Bool, false]

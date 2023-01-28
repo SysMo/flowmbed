@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
-use crate::gen::device::{DeviceConfigGenerator, PeripheralConfigGenerator};
-use genco::prelude::{rust, quote};
+use crate::{gen::device::{DeviceConfigGenerator, PeripheralConfigGenerator, PeripheralGenerator}, util::{GenerationContext, context::ContextObjectEnum}};
 // Check out https://github.com/dtolnay/typetag
 // For for possibly implementing trait loading from YAML
 
@@ -33,15 +32,19 @@ pub struct Peripheral {
 }
 
 impl Peripheral {
-  pub fn gen<'a>(&'a self) -> &'a dyn PeripheralConfigGenerator {
-    self.config.as_ref()
+  pub fn gen<'a>(&'a self, context: &'a GenerationContext<'a>) -> PeripheralGenerator<'a> {
+    PeripheralGenerator {
+      context: context.push(&self.id, ContextObjectEnum::Peripheral(self.config.as_ref())),
+      config: self.config.as_ref()
+    }    
   }
 }
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PeripheralRef(pub String);
 
 #[typetag::serde(tag = "type")]
-pub trait PeripheralConfig: PeripheralConfigGenerator + core::fmt::Debug {
-  // fn gen<'a>(&'a self) -> &'a dyn PeripheralConfigGenerator;
+pub trait PeripheralConfig: PeripheralConfigGenerator + core::fmt::Debug + core::any::Any {
+
 }

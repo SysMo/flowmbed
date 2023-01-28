@@ -1,6 +1,7 @@
 use genco::prelude::{rust, quote};
 use std::collections::HashMap;
-use crate::dsl::references::{QualifiedPath, PackageImport};
+use crate::dsl::references::{PackageImport};
+use crate::util::QualifiedPath;
 
 pub trait NameResolver {
   fn resolve_import(&self, path: &str) -> anyhow::Result<rust::Tokens>;

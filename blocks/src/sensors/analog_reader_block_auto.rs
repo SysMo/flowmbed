@@ -1,4 +1,5 @@
 use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
 #[allow(dead_code)]
@@ -8,7 +9,7 @@ pub struct AnalogReaderBlock<'a> {
   pub output: dscore::Output<'a, dscore::Float>,
   // Discrete states
   // Peripherals
-  pub sensor: &'a mut dyn flowmbed_peripherals::sensors::traits::AnalogReader,
+  pub sensor: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReader>,
 }
 
 /// Implement the block struct
@@ -24,13 +25,13 @@ impl<'a> AnalogReaderBlock<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_sensor: Option<&'a mut dyn flowmbed_peripherals::sensors::traits::AnalogReader>,
+  periph_sensor: Option<DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReader>>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn sensor(mut self, v: &'a mut dyn flowmbed_peripherals::sensors::traits::AnalogReader) -> Self {
+  pub fn sensor(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReader>) -> Self {
     self.periph_sensor = Some(v);
     self
   }

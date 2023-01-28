@@ -31,6 +31,10 @@ examples/core_blocks: build/pre gen_blocks/blocks
 # examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
 # 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
 
+examples/gen/%: build/pre
+	echo Generating target $*
+	make gen_system/systems/examples/$*
+
 examples/build/%: build/pre
 	echo Generating target $*
 	make gen_system/systems/examples/$*
@@ -46,8 +50,8 @@ examples/flash/%: build/pre
 
 
 examples/54_temperature/build: examples/build/54_temperature
-
 examples/54_temperature/flash: examples/flash/54_temperature
+examples/54_temperature/gen: examples/gen/54_temperature
 
 
 # examples/%/run_system:

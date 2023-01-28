@@ -1,4 +1,5 @@
 use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
 #[allow(dead_code)]
@@ -8,7 +9,7 @@ pub struct PWMOutput<'a> {
   // Outputs
   // Discrete states
   // Peripherals
-  pub output: &'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin,
+  pub output: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>,
 }
 
 /// Implement the block struct
@@ -24,13 +25,13 @@ impl<'a> PWMOutput<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_output: Option<&'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin>,
+  periph_output: Option<DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn output(mut self, v: &'a mut dyn flowmbed_peripherals::actuators::traits::PwmPin) -> Self {
+  pub fn output(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>) -> Self {
     self.periph_output = Some(v);
     self
   }
