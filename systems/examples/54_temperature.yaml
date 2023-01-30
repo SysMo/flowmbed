@@ -35,7 +35,7 @@ devices:
         - id: button1
           config:
             type: DigitalInputPin
-            pin: 16
+            pin: 5
             pull: up
 
         - id: led1
@@ -44,6 +44,14 @@ devices:
             pin: 2
 
 
+        - id: led_pwm_1
+          config:
+            type: PwmMultiChannel
+            timer:
+              - 
+            channels:
+              - pin: 4
+              - pin: 6
         # - id: t1
         #   config: 
         #     type: DS18B20Array

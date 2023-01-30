@@ -9,7 +9,7 @@ pub struct PWMOutput<'a> {
   // Outputs
   // Discrete states
   // Peripherals
-  pub output: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>,
+  pub output: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmChannel>,
 }
 
 /// Implement the block struct
@@ -25,13 +25,13 @@ impl<'a> PWMOutput<'a> {
 
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_output: Option<DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>>,
+  periph_output: Option<DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmChannel>>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn output(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmPin>) -> Self {
+  pub fn output(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::actuators::traits::PwmChannel>) -> Self {
     self.periph_output = Some(v);
     self
   }

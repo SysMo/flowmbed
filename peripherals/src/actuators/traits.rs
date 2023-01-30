@@ -14,7 +14,7 @@ pub trait DigitalOutputPin {
     fn set_high(&mut self) -> anyhow::Result<()>;
 }
 
-pub trait PwmPin {
+pub trait PwmChannel {
   /// Disables a PWM `channel`
   fn disable(&mut self) -> anyhow::Result<()>;
 
@@ -26,4 +26,8 @@ pub trait PwmPin {
 
   /// Sets a new duty cycle
   fn set_duty(&mut self, duty: Float) -> anyhow::Result<()>;
+}
+
+pub trait PwmMultiChannel<const N: usize> {
+  fn channel(&mut self, i: usize) -> anyhow::Result<&mut dyn PwmChannel>;
 }

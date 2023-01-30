@@ -1,5 +1,5 @@
-use esp32_hal::ledc;
-use esp32_hal::peripherals::Peripherals;
+use esp_idf_hal::ledc;
+use esp_idf_hal::peripherals::Peripherals;
 use flowmbed_core_blocks::{actuators as hardware_sinks, sources as sources};
 use flowmbed_dynsys::core as fds_core;
 use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage};

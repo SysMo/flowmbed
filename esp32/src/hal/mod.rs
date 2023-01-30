@@ -17,4 +17,5 @@ pub use digital::DigitalOutputPin;
 
 mod pwm;
 
-
+pub use pwm::Esp32Ledc as PwmOutput;
+pub use pwm::Esp32LedcMultiChannel as PwmMultiChannel;
