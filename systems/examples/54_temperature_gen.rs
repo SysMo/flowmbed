@@ -1,4 +1,4 @@
-use esp_idf_hal::{adc, gpio};
+use esp_idf_hal::{adc, gpio, units};
 use esp_idf_hal::peripherals::Peripherals;
 use flowmbed_core_blocks::{actuators as actuators, discrete as discrete, sensors as sensors, sinks as sinks};
 use flowmbed_dynsys::core as fds_core;
@@ -14,8 +14,9 @@ struct EspDevPeripherals<'a> {
     channel_0: RefOnce<esp32hal::AnalogChannel<'a, gpio::Gpio32, adc::Atten11dB<adc::ADC1>>>,
     channel_1: RefOnce<esp32hal::AnalogChannel<'a, gpio::Gpio33, adc::Atten11dB<adc::ADC1>>>,
     adc1: RefOnce<esp32hal::AnalogReaderMultiChannel<'a, adc::ADC1, 2>>,
-    button1: RefOnce<esp32hal::DigitalInputPin<'a, gpio::Gpio16>>,
+    button1: RefOnce<esp32hal::DigitalInputPin<'a, gpio::Gpio5>>,
     led1: RefOnce<esp32hal::DigitalOutputPin<'a, gpio::Gpio2>>,
+    led_pwm_1: RefOnce<esp32hal::PwmMultiChannel<'a, 2>>,
     serial1: RefOnce<esp32hal::SerialValueSink>,
     serial2: RefOnce<esp32hal::SerialValueSink>,
 }
@@ -55,13 +56,20 @@ impl<'a> EspDevPeripherals<'a> {
 
         MCU_PERIPHERALS.button1.init({
             {let mut driver =
-                gpio::PinDriver::input(peripherals.pins.gpio16)?;
+                gpio::PinDriver::input(peripherals.pins.gpio5)?;
             driver.set_pull(gpio::Pull::Up)?;
             driver.into()}
         })?;
 
         MCU_PERIPHERALS.led1.init({
             gpio::PinDriver::output(peripherals.pins.gpio2)?.into()
+        })?;
+
+        MCU_PERIPHERALS.led_pwm_1.init({
+            esp32hal::PwmMultiChannel::builder(units::Hertz(1000), peripherals.ledc.timer0)?
+            .add_channel(peripherals.ledc.channel0, peripherals.pins.gpio4)?
+            .add_channel(peripherals.ledc.channel1, peripherals.pins.gpio6)?
+            .build()?
         })?;
 
         MCU_PERIPHERALS.serial1.init({

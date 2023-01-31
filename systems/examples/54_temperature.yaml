@@ -48,10 +48,13 @@ devices:
           config:
             type: PwmMultiChannel
             timer:
-              - 
+              id: timer0
+              freq: 1000
             channels:
-              - pin: 4
-              - pin: 6
+              - id: channel0
+                pin: 4
+              - id: channel1
+                pin: 6
         # - id: t1
         #   config: 
         #     type: DS18B20Array

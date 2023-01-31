@@ -96,9 +96,10 @@ fn test_pwm() -> anyhow::Result<()> {
 
   let peripherals = Peripherals::take().unwrap();
   MCU_PERIPHERALS.pwm1.init( 
-    hal::PwmMultiChannel::new(1000_u32.Hz(), peripherals.ledc.timer0)?
+    hal::PwmMultiChannel::builder(1000_u32.Hz(), peripherals.ledc.timer0)?
       .add_channel(peripherals.ledc.channel0, peripherals.pins.gpio16)?
       .add_channel(peripherals.ledc.channel1, peripherals.pins.gpio17)?
+      .build()?
   )?;
 
   let mut pwm1 = MCU_PERIPHERALS.pwm1.mut_ref()?;

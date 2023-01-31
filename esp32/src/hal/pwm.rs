@@ -50,16 +50,16 @@ impl<'a> actuators::PwmChannel for Esp32Ledc<'a> {
 pub struct Esp32LedcMultiChannel<'a, const N: usize> {
   timer_driver: ledc::LedcTimerDriver<'a>,
   channel_drivers: [Option<Esp32Ledc<'a>>; N],
-  n: usize,
 }
+
 
 use esp_idf_hal::prelude::Hertz;
 
 impl<'a, const N: usize> Esp32LedcMultiChannel<'a, N> {
-  pub fn new(
+  pub fn builder(
     f: Hertz,
     timer: impl Peripheral<P = impl ledc::LedcTimer> + 'a,
-  ) -> anyhow::Result<Self> {
+  ) -> anyhow::Result<Esp32LedcMultiChannelBuilder<'a, N>> {
     use core::mem::MaybeUninit;
 
     let timer_config = 
@@ -72,7 +72,7 @@ impl<'a, const N: usize> Esp32LedcMultiChannel<'a, N> {
     const INIT: Option<Esp32Ledc> = None;
     let drivers: [Option<Esp32Ledc<'a>>; N] = [INIT; N];
   
-    Ok(Self {
+    Ok(Esp32LedcMultiChannelBuilder {
       timer_driver,
       channel_drivers: drivers,
       n: 0, 
@@ -80,6 +80,15 @@ impl<'a, const N: usize> Esp32LedcMultiChannel<'a, N> {
     
   }
 
+}
+
+pub struct Esp32LedcMultiChannelBuilder<'a, const N: usize> {
+  timer_driver: ledc::LedcTimerDriver<'a>,
+  channel_drivers: [Option<Esp32Ledc<'a>>; N],
+  n: usize,
+}
+
+impl<'a, const N: usize> Esp32LedcMultiChannelBuilder<'a, N> {
   pub fn add_channel(
     mut self,
     ch: impl Peripheral<P = impl ledc::LedcChannel> + 'a,
@@ -98,7 +107,19 @@ impl<'a, const N: usize> Esp32LedcMultiChannel<'a, N> {
       anyhow::bail!("Channel capacity ({}) exceeded!", N)
     }
   }
+
+  pub fn build(self) -> anyhow::Result<Esp32LedcMultiChannel<'a, N>> {
+    if self.n < N {
+      anyhow::bail!("Only {} out of {} PWM channels configured!", self.n, N)
+    } else {
+      Ok(Esp32LedcMultiChannel {
+        timer_driver: self.timer_driver,
+        channel_drivers: self.channel_drivers
+      })  
+    }
+  }
 }
+
 
 impl<'a, const N: usize> actuators::PwmMultiChannel<N> 
 for Esp32LedcMultiChannel<'a, N> {
@@ -108,4 +129,6 @@ for Esp32LedcMultiChannel<'a, N> {
     Ok(channel)
   }
 }
+
+
 

@@ -1,4 +1,4 @@
-mod peripherals;
+pub mod peripherals;
 
 use serde::{Serialize, Deserialize};
 use genco::prelude::{rust, quote};
@@ -30,6 +30,7 @@ struct Imports {
   pub gpio: rust::Import,
   pub adc: rust::Import,
   pub ledc: rust::Import,
+  pub units: rust::Import,
   pub Peripherals: rust::Import,  
   pub esp32hal: rust::Import,
 }
@@ -39,6 +40,7 @@ lazy_static! {
     gpio: rust::import("esp_idf_hal", "gpio"),
     adc: rust::import("esp_idf_hal", "adc"),
     ledc: rust::import("esp_idf_hal", "ledc"),
+    units: rust::import("esp_idf_hal", "units"),
     Peripherals: rust::import("esp_idf_hal::peripherals", "Peripherals"),
     esp32hal: rust::import("flowmbed_esp32", "hal").with_alias("esp32hal")
   };  
