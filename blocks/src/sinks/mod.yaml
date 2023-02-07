@@ -3,7 +3,8 @@
 blocks:
   - name: FloatSink
     inputs:
-      - input: [Float]
+      - name: input
+        type: Float
     peripherals:
       - name: sink
         direction: Out
@@ -11,7 +12,8 @@ blocks:
 
   - name: BoolSink
     inputs:
-      - input: [Bool]
+      - name: input
+        type: Bool
     peripherals:
       - name: sink
         direction: Out
@@ -19,8 +21,25 @@ blocks:
 
   - name: IntSink
     inputs:
-      - input: [Int]
+      - name: input
+        type: Int
     peripherals:
       - name: sink
         direction: Out
-        trait: flowmbed_peripherals::sinks::traits::ValueSink        
+        trait: flowmbed_peripherals::sinks::traits::ValueSink
+    
+  - name: ArraySink
+    structural:
+      - name: T
+        type: Type
+        restrictions: [Copy, std::fmt::Display]
+      - name: N
+        type: Constant
+    inputs:
+      - name: input
+        type: T
+        size: N
+    peripherals:
+      - name: sink
+        direction: Out
+        trait: flowmbed_peripherals::sinks::traits::ValueSink

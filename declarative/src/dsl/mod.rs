@@ -31,11 +31,26 @@ impl FieldValue {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, EnumString, Display)]
+#[serde(try_from = "String")]
 pub enum FieldType {
   Int,
   Float,
   Bool,
   String,
+  Generic(String)
+}
+
+impl TryFrom<String> for FieldType {
+  type Error = anyhow::Error;
+  fn try_from(value: String) -> Result<Self, Self::Error> {
+    match value.as_str() {
+      "Int" => Ok(FieldType::Int),
+      "Float" => Ok(FieldType::Float),
+      "Bool" => Ok(FieldType::Bool),
+      "String" => Ok(FieldType::String),
+      t => Ok(FieldType::Generic(t.to_owned()))
+    }
+  }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, EnumString, Display)]
@@ -58,7 +73,7 @@ pub struct StorageSize {
     pub b_dstate: usize,
     pub i_dstate: usize,
     
-    pub r_out: usize,
-    pub b_out: usize,
-    pub i_out: usize
+    // pub r_out: usize,
+    // pub b_out: usize,
+    // pub i_out: usize
 }

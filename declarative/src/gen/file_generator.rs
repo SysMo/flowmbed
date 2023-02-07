@@ -1,7 +1,7 @@
 use std::path;
 use std::fs;
 use log::*;
-use crate::util::GenerationContext;
+use crate::util::context::empty_context;
 
 use super::traits::CodeGenerator;
 use genco::fmt;
@@ -40,7 +40,7 @@ impl<'a, P: AsRef<path::Path>> FileGenerator<'a, P> {
       let mut formatter = w.as_formatter(&fmt);
       let config = rust::Config::default();
       
-      let tokens = self.gen.generate(&GenerationContext::root())?;
+      let tokens = self.gen.generate(&empty_context())?;
       tokens.format_file(&mut formatter, &config)?;
 
 

@@ -1,21 +1,37 @@
 use crate::dsl::FieldValue;
-use crate::dsl::circuit::{CircuitConfig, BlockConnection};
+use crate::dsl::circuit::{CircuitConfig};
 use crate::dsl::block_instance::{BlockInstance};
-use crate::util::GenerationContext;
+use crate::util::context::GenerationContext;
 use super::traits::CodeGenerator;
 use super::resolver::NameResolver;
 use genco::prelude::{rust, quote};
+use lazy_static::lazy_static;
 #[allow(unused_imports)]
 use super::comments::{Comment, DocComment};
 use convert_case::{Case, Casing};
 
+#[allow(non_snake_case)]
+pub struct Imports {
+  pub DS: rust::Import,
+  pub ds_core: rust::Import,
+  pub req_storage: rust::Import,
+  pub req_peripherals: rust::Import,
+  pub OnceCell: rust::Import,
+}
+
+lazy_static!(
+  pub static ref IMPORTS: Imports = Imports {
+    DS: rust::import("flowmbed_dynsys::core", "DynamicalSystem"),
+    ds_core: rust::import("flowmbed_dynsys", "core").with_alias("ds_core"),
+    req_storage: rust::import("flowmbed_dynsys::core", "RequiresStorage"),
+    req_peripherals: rust::import("flowmbed_dynsys::core", "RequirePeripherals"),
+    OnceCell: rust::import("flowmbed_dynsys::util::containers", "OnceCell"),
+  };
+);
+
 pub struct CircuitGenerator<'a> {
   pub resolver: &'a dyn NameResolver,
   pub circuit: &'a CircuitConfig,
-  pub dynsys_core: rust::Import,
-  pub i_sys: rust::Import,
-  pub i_req_storage: rust::Import,
-  pub i_req_peripherals: rust::Import,
 }
 
 impl<'a> CircuitGenerator<'a> {
@@ -23,17 +39,18 @@ impl<'a> CircuitGenerator<'a> {
     CircuitGenerator {
       resolver,
       circuit,
-      dynsys_core: rust::import("flowmbed_dynsys", "core").with_alias("fds_core"),
-      i_sys: rust::import("flowmbed_dynsys::core", "DynamicalSystem"),
-      i_req_storage: rust::import("flowmbed_dynsys::core", "RequiresStorage"),
-      i_req_peripherals: rust::import("flowmbed_dynsys::core", "RequirePeripherals")
     }
   }
 
   /// Generate a field in the circuit structure definition
   fn declare_block(&self, block: &BlockInstance) -> anyhow::Result<rust::Tokens> {
+    let mut gen_params: Vec<rust::Tokens> = vec![quote!('a)];
+    block.structural.iter().for_each(|x|{
+      gen_params.push(quote!($(x.as_text())))
+    });
+    let gen = quote!($(for p in gen_params join(, ) => $p));
     Ok(quote!(
-      $(&block.id): $(self.resolver.resolve_import(&block.kind)?)<'a>
+      $(&block.id): $(self.resolver.resolve_import(&block.kind)?)<$gen>
     ))
   }
 
@@ -53,7 +70,7 @@ impl<'a> CircuitGenerator<'a> {
 
     let peripherals_name = "peripherals";
     
-    let mut args  = vec![quote!(&mut builder)];
+    let args  = vec![quote!(&mut builder)];
 
     let mut modifiers = block.parameters.iter().map(
       |(key, value)| {
@@ -75,16 +92,16 @@ impl<'a> CircuitGenerator<'a> {
 
 
     Ok(quote!(
-      $(&block.id): {$(self.resolver.resolve_import(&block.kind)?)
-        ::$(create_fn(args, modifiers))},
+      {$(self.resolver.resolve_import(&block.kind)?)
+        ::$(create_fn(args, modifiers))}
     ))
   }
 
-  /// Creates connection between two blocks
-  fn connect_blocks(&self, connection: &BlockConnection) -> rust::Tokens {
-    let to = &connection.to;
-    let from = &connection.from;
-    quote!(self.$(&to.block).$(&to.id).connect(&self.$(&from.block).$(&from.id)))
+  /// Connect a block to its inputs
+  fn block_connect(&self, block: &BlockInstance) -> rust::Tokens {
+    quote!($(for (input, output) in &block.inputs =>
+      self.$(&block.id).$(&input.input_id).connect(&self.$(&output.block_id).$(&output.output_id))?;$['\r']
+    ))
   }
 
   /// Initialize a block
@@ -99,13 +116,25 @@ impl<'a> CircuitGenerator<'a> {
 
   /// Perform a step for the block
   fn block_add_size(&self, block: &BlockInstance) -> anyhow::Result<rust::Tokens> {
-    Ok(quote!(.add($(self.resolver.resolve_import(&block.kind)?)::SIZE)))
+    let gen_params = block.structural.iter().map(|x|
+      quote!($(x.as_text()))
+    ).collect::<Vec<_>>();
+
+    if gen_params.is_empty() {
+      Ok(quote!(.add($(self.resolver.resolve_import(&block.kind)?)::SIZE)))
+    } else {
+      let gen = quote!($(for p in gen_params join(, ) => $p));
+      Ok(quote!(.add($(self.resolver.resolve_import(&block.kind)?)::<$(gen)>::SIZE)))
+    }
+
+    
   }
 
 }
 
 impl<'a> CodeGenerator for CircuitGenerator<'a> {
-  fn generate(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, _: &dyn GenerationContext) -> anyhow::Result<rust::Tokens> {
+    let ds_core = &IMPORTS.ds_core;
     let circuit_name = &self.circuit.id;
 
     let peripherals_struct = &format!("{}Peripherals",
@@ -113,6 +142,7 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
 
     Ok(quote!{
       $(DocComment(["Declare circuit structure"]))
+      #[derive(const_default_derive::ConstDefault)]
       struct $(circuit_name)<'a> {
         $(for block in &self.circuit.blocks =>
           $(self.declare_block(&block)?),$['\r']
@@ -121,30 +151,32 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
       
       $(DocComment(["Implement circuit structure"]))
       impl<'a> $(circuit_name)<'a> {
-        pub fn new<ST: $(&self.dynsys_core)::DefaultSystemStrorage>(
+        pub fn init<ST: $(ds_core)::DefaultSystemStrorage>(
+          circuit: &mut $(&IMPORTS.OnceCell)<$(circuit_name)<'a>>,
           storage: &'a ST, peripherals: &'a $(peripherals_struct)
-        ) -> anyhow::Result<$(circuit_name)<'a>> {
-          use $(&self.dynsys_core)::BlockBuilder;
+        ) -> anyhow::Result<()> {
+          use $(ds_core)::BlockBuilder;
 
-          let mut builder = $(&self.dynsys_core)::SystemStorageBuilder::new(storage);
 
-          let mut circuit = $(circuit_name) {
+          let mut builder = $(ds_core)::SystemStorageBuilder::new(storage);
+          
+          circuit.set($(circuit_name) {
             $(for block in &self.circuit.blocks =>
-              $(self.create_block(&block)?)
+              $(&block.id):$(self.create_block(&block)?),$['\r']
             )    
-          };
+          })?;
 
-          circuit.connect()?;
-          Ok(circuit)
+          circuit.get_mut()?.connect()?;
+          Ok(())
         }
 
       }
 
       $(DocComment(["Implement DynamicalSystem protocol"]))
-      impl<'a> $(&self.i_sys) for $(circuit_name)<'a> {
+      impl<'a> $(&IMPORTS.DS)<'a> for $(circuit_name)<'a> {
         fn connect(&mut self) -> anyhow::Result<()> {
-          $(for connection in &self.circuit.connections => 
-            $(self.connect_blocks(&connection))?;$['\r']
+          $(for block in &self.circuit.blocks =>
+            $(self.block_connect(&block))
           )
           Ok(())
         }
@@ -156,7 +188,7 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
           Ok(())
         }
 
-        fn step(&mut self, ssi: &$(&self.dynsys_core)::SystemStateInfo) -> anyhow::Result<()> {
+        fn step(&mut self, ssi: &$(ds_core)::SystemStateInfo) -> anyhow::Result<()> {
           $(for block in &self.circuit.blocks =>
             $(self.block_step(&block))?;$['\r']
           )              
@@ -165,15 +197,15 @@ impl<'a> CodeGenerator for CircuitGenerator<'a> {
       }
 
       $(DocComment(["Implement RequirePeripherals protocol"]))
-      impl<'a> $(&self.i_req_peripherals) for $(circuit_name)<'a> {
+      impl<'a> $(&IMPORTS.req_peripherals) for $(circuit_name)<'a> {
         type PeripheralsStruct = $(peripherals_struct)<'a>;
       }
 
       $(DocComment(["Implement RequireStorage protocol"]))
       use const_default::ConstDefault;
-      impl<'a> $(&self.i_req_storage) for $(circuit_name)<'a> {
-        const SIZE: $(&self.dynsys_core)::StorageSize = 
-          $(&self.dynsys_core)::StorageSize::DEFAULT$['\r']
+      impl<'a> $(&IMPORTS.req_storage) for $(circuit_name)<'a> {
+        const SIZE: $(ds_core)::StorageSize = 
+          $(ds_core)::StorageSize::DEFAULT$['\r']
             $(for block in &self.circuit.blocks =>
               $(self.block_add_size(&block)?)$['\r']
             )              

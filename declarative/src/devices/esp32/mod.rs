@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use genco::prelude::{rust, quote};
 use crate::dsl::device::{DeviceConfig, Peripheral};
 use crate::gen::device::DeviceConfigGenerator;
-use crate::util::GenerationContext;
+use crate::util::context::{DeviceContext};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -47,14 +47,14 @@ lazy_static! {
 }
 
 impl DeviceConfigGenerator for ESP32DeviceConfig {
-  fn gen_imports(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_imports(&self, _: &DeviceContext) -> anyhow::Result<rust::Tokens> {
     Ok(quote!(
       // #[allow(unused_imports)]
       // use esp_idf_hal::prelude::*;
     ))
   }
 
-  fn gen_take_peripherals(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_take_peripherals(&self, _: &DeviceContext) -> anyhow::Result<rust::Tokens> {
     let peripherals = &IMPORTS.Peripherals;
     Ok(quote!(
       match $(peripherals)::take() {

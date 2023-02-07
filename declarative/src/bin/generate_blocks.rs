@@ -1,7 +1,7 @@
 use std::env;
 use std::path;
 use simple_logger;
-use flowmbed_declarative::gen::{block_def::BlockModuleGenerator, self};
+use flowmbed_declarative::gen::{block_def::BlockModuleGenerator};
 use log::*;
 use glob::glob;
 

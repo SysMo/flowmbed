@@ -3,17 +3,36 @@
 blocks:
   - name: CountingTrigger
     parameters:
-      - pulses_up: [Int, 1]
-      - pulses_down: [Int, 1]
-      - initial_state: [Bool, false]
-      - initial_count: [Int, 0]
-      - count_on_rising: [Bool, true]
+      - name: pulses_up
+        type: Int
+        default: 1
+      - name: pulses_down
+        type: Int
+        default: 1
+      - name: initial_state
+        type: Bool
+        default: false
+      - name: initial_count
+        type: Int
+        default: 0
+      - name: count_on_rising
+        type: Bool
+        default: true
     inputs:
-      - input: [Bool]
+      - name: input
+        type: Bool
     outputs:
-      - output: [Bool, false]
+      - name: output
+        type: Bool
+        default: false
     discrete_states:
-      - last_input: [Bool, false]
-      - current: [Bool, false]
-      - counter: [Int, 0]
+      - name: last_input
+        type: Bool
+        initial: false
+      - name: current
+        type: Bool
+        initial: false
+      - name: counter
+        type: Int
+        initial: 0
             

@@ -4,7 +4,7 @@ use super::int_sink_auto::*;
 
 /// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem for IntSink<'a> {
+impl<'a> dscore::DynamicalSystem<'a> for IntSink<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.sink.send(Value::Int(*self.input))

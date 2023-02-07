@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use strum::Display;
 use crate::dsl::device::{PeripheralConfig};
-use crate::gen::device::{PeripheralConfigGenerator, PeripheralGenerator};
-use crate::util::context::{GenerationContext, ContextObjectEnum};
+use crate::gen::device::{PeripheralConfigGenerator};
+use crate::util::context::{PeripheralContext};
+use crate::util::context::{GenerationContext};
 use genco::prelude::{rust, quote};
 use super::super::IMPORTS;
 
@@ -22,6 +23,7 @@ pub struct PwmTimer {
 
 #[derive(Debug, Serialize, Deserialize, Display)]
 #[serde(deny_unknown_fields)]
+#[allow(non_camel_case_types)]
 pub enum Esp32Timer {
   timer0,
   timer1,
@@ -38,6 +40,7 @@ pub struct PwmChannel {
 
 #[derive(Debug, Serialize, Deserialize, Display)]
 #[serde(deny_unknown_fields)]
+#[allow(non_camel_case_types)]
 pub enum Esp32Channel {
   channel0, channel1, channel2,
   channel3, channel4, channel5,
@@ -48,7 +51,7 @@ pub enum Esp32Channel {
 impl PeripheralConfig for PwmMultiChannel {}
 
 impl PeripheralConfigGenerator for PwmMultiChannel {
-  fn gen_type(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let esp32hal = &IMPORTS.esp32hal;
     let n_channels = self.channels.len();
     Ok(quote!(
@@ -56,16 +59,19 @@ impl PeripheralConfigGenerator for PwmMultiChannel {
     ))
   }
 
-  fn gen_initialize(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let esp32hal = &IMPORTS.esp32hal;
     let units = &IMPORTS.units;
     let timer = self.timer.id.to_string();
-    let mut i = 0;    
     let freq = self.timer.freq.to_string();
+    let var_internal_periph = context.find_device()?.var_internal_periph();
+
     Ok(quote!(
-      $(esp32hal)::PwmMultiChannel::builder($(units)::Hertz($(freq)), peripherals.ledc.$(timer))?
+      $(esp32hal)::PwmMultiChannel::builder($(units)::Hertz($(freq)), $(var_internal_periph).ledc.$(timer))?
       $(for channel in &self.channels => 
-        .add_channel(peripherals.ledc.$(&channel.id.to_string()), peripherals.pins.gpio$(&channel.pin))?$['\r']
+        .add_channel(
+          $(var_internal_periph).ledc.$(&channel.id.to_string()), 
+          $(var_internal_periph).pins.gpio$(&channel.pin))?$['\r']
       )
       .build()?
     ))      

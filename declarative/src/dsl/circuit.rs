@@ -9,7 +9,7 @@ pub struct CircuitConfig {
   pub id: String,
   pub device: String,
   pub blocks: Vec<BlockInstance>,
-  pub connections: Vec<BlockConnection>,
+  // pub connections: Vec<BlockConnection>,
 }
 
 type ConnectionMap = HashMap<String, String>;

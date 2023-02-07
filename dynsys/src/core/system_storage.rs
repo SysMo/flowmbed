@@ -1,6 +1,6 @@
 use const_default::ConstDefault;
 use const_default_derive::ConstDefault;
-use super::variables::{Parameter, DiscreteState, Output, Input};
+use super::variables::{Parameter, DiscreteState};
 use super::{Float, Int, Bool};
 
 #[allow(dead_code)]
@@ -14,9 +14,9 @@ pub struct StorageSize {
     pub b_dstate: usize,
     pub i_dstate: usize,
     
-    pub r_out: usize,
-    pub b_out: usize,
-    pub i_out: usize
+    // pub r_out: usize,
+    // pub b_out: usize,
+    // pub i_out: usize
 }
 
 impl StorageSize {
@@ -30,9 +30,9 @@ impl StorageSize {
       b_dstate: self.b_dstate + rhs.b_dstate,
       i_dstate: self.i_dstate + rhs.i_dstate,
       
-      r_out: self.r_out + rhs.r_out,
-      b_out: self.b_out + rhs.b_out,
-      i_out: self.i_out + rhs.i_out
+      // r_out: self.r_out + rhs.r_out,
+      // b_out: self.b_out + rhs.b_out,
+      // i_out: self.i_out + rhs.i_out
     }
   }
 }
@@ -63,9 +63,9 @@ next_index_impl!(Parameter, Int, i_param);
 next_index_impl!(DiscreteState, Float, r_dstate);
 next_index_impl!(DiscreteState, Bool, b_dstate);
 next_index_impl!(DiscreteState, Int, i_dstate);
-next_index_impl!(Output, Float, r_out);
-next_index_impl!(Output, Bool, b_out);
-next_index_impl!(Output, Int, i_out);
+// next_index_impl!(Output, Float, r_out);
+// next_index_impl!(Output, Bool, b_out);
+// next_index_impl!(Output, Int, i_out);
 
 #[allow(dead_code)]
 impl StorageSize {
@@ -106,10 +106,10 @@ pub trait SystemStorageFacade {
     self.set_value::<DiscreteState<T>, T>(ind, v)
   }
 
-  fn set_output<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
-  where Self: StorageAccess<'a, Output<'a, T>, T> {
-    self.set_value::<Output<T>, T>(ind, v)
-  }
+  // fn set_output<'a, T : 'a>(&'a self, ind: usize, v: T) -> anyhow::Result<()>
+  // where Self: StorageAccess<'a, Output<'a, T>, T> {
+  //   self.set_value::<Output<T>, T>(ind, v)
+  // }
 }
 
 
@@ -121,9 +121,9 @@ where for<'a> Self:
   StorageAccess<'a, DiscreteState<'a, Float>, Float> +
   StorageAccess<'a, DiscreteState<'a, bool>, bool> +
   StorageAccess<'a, DiscreteState<'a, Int>, Int> +
-  StorageAccess<'a, Output<'a, Float>, Float> + 
-  StorageAccess<'a, Output<'a, Bool>, Bool> +
-  StorageAccess<'a, Output<'a, Int>, Int> +
+  // StorageAccess<'a, Output<'a, Float>, Float> + 
+  // StorageAccess<'a, Output<'a, Bool>, Bool> +
+  // StorageAccess<'a, Output<'a, Int>, Int> +
 {
 
 }
@@ -166,24 +166,47 @@ impl<'a, ST: SystemStorageFacade> SystemStorageBuilder<'a, ST> {
     state
   }
 
-  pub fn create_output<T>(&mut self, initial: T) -> Output<'a, T>
-  where 
-  ST: StorageAccess<'a, Output<'a, T>, T> ,
-  StorageSize: NextIndex<Output<'a, T>>
-  {
-    let next_index = (&mut self.counters as &mut dyn NextIndex<Output<'a, T>>).next_index();
-    let output = Output { id: next_index, access: self.storage };
-    self.storage.set_output(output.id, initial).unwrap();
-    output
-  }
+//   pub fn create_output<T: Copy>(&mut self, initial: T) -> Output<'a, T>
+//   where 
+//   ST: StorageAccess<'a, Output<'a, T>, T> ,
+//   StorageSize: NextIndex<Output<'a, T>>
+//   {
+//     let next_index = (&mut self.counters as &mut dyn NextIndex<Output<'a, T>>).next_index();
+//     let output = Output { id: next_index, access: self.storage };
+//     self.storage.set_output(output.id, initial).unwrap();
+//     output
+//   }
 
-  pub fn create_input<T: 'a>(&mut self) -> Input<'a, T>
-  where 
-  ST: StorageAccess<'a, Output<'a, T>, T> ,
-  StorageSize: NextIndex<Output<'a, T>>
-  {
-    Input { output_id: None, access: self.storage }
-  }
+//   pub fn create_outputs<T: Copy, const N: usize>(&mut self, initial: T) -> [Output<'a, T>; N]
+//   where 
+//   ST: StorageAccess<'a, Output<'a, T>, T> ,
+//   StorageSize: NextIndex<Output<'a, T>>
+//   {
+//     std::array::from_fn(|_| {
+//       let next_index = (&mut self.counters as &mut dyn NextIndex<Output<'a, T>>).next_index();
+//       let output = Output { id: next_index, access: self.storage };
+//       self.storage.set_output(output.id, initial).unwrap();
+//       output  
+//     })
+//   }
+
+//   pub fn create_input<T: 'a>(&mut self) -> Input<'a, T>
+//   where 
+//   ST: StorageAccess<'a, Output<'a, T>, T> ,
+//   StorageSize: NextIndex<Output<'a, T>>
+//   {
+//     Input { output_id: None, access: self.storage }
+//   }
+
+
+//   pub fn create_inputs<T: 'a, const N: usize>(&mut self) -> [Input<'a, T>; N]
+//   where 
+//   ST: StorageAccess<'a, Output<'a, T>, T> ,
+//   StorageSize: NextIndex<Output<'a, T>>
+//   {
+//     std::array::from_fn(|_| self.create_input())
+//   }
+
 }
 
 pub trait VariableCreator<'a, K, T> {  

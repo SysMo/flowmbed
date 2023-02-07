@@ -4,7 +4,7 @@ use super::square_wave_source_auto::*;
 
 /// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem for SquareWaveSource<'a> {
+impl<'a> dscore::DynamicalSystem<'a> for SquareWaveSource<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.current.initialize(*self.initial);

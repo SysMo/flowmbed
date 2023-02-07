@@ -1,6 +1,6 @@
 use std::fs;
 use crate::dsl::system::SystemConfig;
-use crate::util::GenerationContext;
+use crate::util::context::{GenerationContext, system_context};
 use genco::prelude::{rust, quote};
 use super::resolver::{NameResolver, NameResolverImpl};
 use super::traits::CodeGenerator;
@@ -36,7 +36,7 @@ impl SystemGenerator {
   }
 
   pub fn generate_file(&self, output_path: &str) -> anyhow::Result<()> {
-    let tokens = self.generate(&GenerationContext::root())?;
+    let tokens = self.generate(&system_context(&self.system))?;
     let text = tokens.to_file_string()?;
     fs::write(output_path, text)?;
     Ok(())
@@ -45,11 +45,11 @@ impl SystemGenerator {
 }
 
 impl CodeGenerator for SystemGenerator {
-  fn generate(&self, ctx: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn generate(&self, ctx: &dyn GenerationContext) -> anyhow::Result<rust::Tokens> {
     let name_resolver: &dyn NameResolver = &NameResolverImpl::new(&self.system.imports);
 
-    let device_gen = self.system.devices.iter()
-      .map(DeviceGenerator::new);
+    // let device_gen = self.system.devices.iter()
+    //   .map(DeviceGenerator::new);
 
     let circuit_gen = self.system.circuits.iter()
       .map(|c| CircuitGenerator::new(c, name_resolver));
@@ -59,9 +59,12 @@ impl CodeGenerator for SystemGenerator {
     
     let tokens = quote! {
       use flowmbed_core_blocks::cfg_device;
-
-      $(for gen in device_gen =>        
-        $(gen.generate(ctx)?)$['\n']
+      
+      $(for device in &self.system.devices =>        
+        $(DeviceGenerator::new(
+          &device,
+          ctx.as_system_context()?.push_device(&device)
+        ).generate()?)$['\n']
       )
 
       $(for gen in circuit_gen =>        

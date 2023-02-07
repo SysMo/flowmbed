@@ -35,7 +35,7 @@ devices:
         - id: button1
           config:
             type: DigitalInputPin
-            pin: 5
+            pin: 21
             pull: up
 
         - id: led1
@@ -52,9 +52,9 @@ devices:
               freq: 1000
             channels:
               - id: channel0
-                pin: 4
+                pin: 16
               - id: channel1
-                pin: 6
+                pin: 17
         # - id: t1
         #   config: 
         #     type: DS18B20Array
@@ -63,12 +63,12 @@ devices:
         #       pin: 4
         #       open_drain: true
 
-        - id: serial1
+        - id: serial_peripheral
           config:
             type: SerialValueSink
-        - id: serial2
-          config:
-            type: SerialValueSink
+        # - id: serial2
+        #   config:
+        #     type: SerialValueSink
 
 circuits:
   - id: TempMeasCircuit
@@ -76,42 +76,55 @@ circuits:
     blocks:
       - id: sensor_adc
         kind: sensors::AnalogReaderMultiChannelBlock
+        structural:
+          - 2
         peripherals:
-          sensor: adc1
+          periph_reader: adc1
 
       - id: sensor_button
         kind: sensors::DigitalReaderBlock
         peripherals:
-          sensor: button1
+          periph_reader: button1
 
       - id: count_trigger
         kind: discrete::CountingTrigger
         parameters:
           pulses_up: 1
           pulses_down: 2
-          initial_count: 0        
+          initial_count: 0
+        inputs:
+          input: sensor_button.output
 
-      - id: print1
-        kind: sinks::FloatSink
+      - id: pwm1
+        kind: actuators::PwmMultiChannelBlock
+        structural:
+          - 2
         peripherals:
-          sink: serial1
-      - id: print2
-        kind: sinks::FloatSink
-        peripherals:
-          sink: serial2
-
+          periph_out: led_pwm_1
+        inputs:
+          duty: sensor_adc.readings
+       
       - id: led1
         kind: actuators::DigitalOutput
         peripherals:
-          output: led1
+          periph_out: led1
+        inputs:
+          input: count_trigger.output
 
+      - id: print1
+        kind: sinks::ArraySink
+        structural: [f32, 2]
+        inputs:
+          input: sensor_adc.readings
+        peripherals:
+          sink: serial_peripheral
 
-
-    connections:
-      - count_trigger.input: sensor_button.output
-      - led1.input: count_trigger.output
-      - print1.input: sensor_adc.output1
-      - print2.input: sensor_adc.output2
+      # - id: print2
+      #   kind: sinks::FloatSink
+      #   peripherals:
+      #     sink: serial2
+      #   inputs:
+      #     input: sensor_adc.outputs[1]
 
 tasks:
   - !FixedStepTask

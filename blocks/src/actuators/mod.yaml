@@ -3,18 +3,36 @@
 blocks:
   - name: DigitalOutput
     inputs: 
-      - input: [Bool]
-    discrete_states:    
-      - current: [Bool, false]
+      - name: input
+        type: Bool
+    discrete_states:   
+      - name: current
+        type: Bool
+        initial: false
     peripherals:
-      - name: output
+      - name: periph_out
         direction: Out
         trait: flowmbed_peripherals::actuators::traits::DigitalOutputPin
 
   - name: PWMOutput
     inputs:
-      - duty: [Float]
+      - name: duty
+        type: Float
     peripherals:
-      - name: output
+      - name: periph_out
         direction: Out
-        trait: flowmbed_peripherals::actuators::traits::PwmPin
+        trait: flowmbed_peripherals::actuators::traits::PwmChannel
+
+  - name: PwmMultiChannelBlock
+    structural:
+      - name: N
+        type: Constant
+    inputs:
+      - name: duty
+        type: Float
+        size: N
+
+    peripherals:
+      - name: periph_out
+        direction: Out
+        trait: flowmbed_peripherals::actuators::traits::PwmMultiChannel<N>

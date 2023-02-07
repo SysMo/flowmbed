@@ -6,7 +6,26 @@ pub struct QualifiedPath {
   pub segments: Vec<String>
 }
 
+static _EMPTY_PATH: QualifiedPath = QualifiedPath::empty();
+
 impl QualifiedPath {
+  pub const fn empty() -> Self {
+    QualifiedPath { segments: Vec::new() }
+  }
+
+  pub fn empty_ref() -> &'static Self {
+    &_EMPTY_PATH
+  }
+
+  pub fn parse(s: &str, sep: &str) -> Self {
+    let segments: Vec<String> = s.split(sep).map(|x| x.to_owned()).collect();
+    QualifiedPath { segments }
+  }
+
+  pub fn from_slice(segments: &[String]) -> Self {
+    QualifiedPath { segments: segments.to_owned() }
+  }
+
   pub fn len(&self) -> usize {
     self.segments.len()
   }
@@ -67,6 +86,27 @@ impl QualifiedPath {
   pub fn name<'a>(&'a self) -> &'a str {
     &self.segments.last().unwrap()
   }
+
+  pub fn relative_path(&self, base: &QualifiedPath) -> anyhow::Result<QualifiedPath> {
+    if self.len() < base.len() {
+      anyhow::bail!("Cannot compute relative path of {}, with respect to base path {}",
+        self.to_string(), base.to_string()
+      )
+    }
+    for i in 0..base.len() {
+      if self.segments[i] != base.segments[i] {
+        anyhow::bail!("Cannot compute relative path of {}, with respect to base path {}",
+          self.to_string(), base.to_string()
+        )
+      }
+    }
+
+    Ok(QualifiedPath::from_slice(&self.segments[base.len()..]))
+  }
+
+  pub fn join(&self, sep: &str) -> String {
+    self.segments.join(sep)
+  }
 }
 
 impl ToString for QualifiedPath {
@@ -91,7 +131,6 @@ impl Eq for QualifiedPath {}
 
 impl From<String> for QualifiedPath {
   fn from(s: String) -> Self {
-    let segments: Vec<String> = s.split("::").map(|x| x.to_owned()).collect();
-    QualifiedPath { segments }
+    Self::parse(&s, "::")
   }
 }

@@ -1,3 +1,4 @@
+use const_default::ConstDefault;
 use serde::{Serialize, Deserialize};
 use super::device::Device;
 use super::circuit::CircuitConfig;
@@ -14,4 +15,9 @@ pub struct SystemConfig {
 }
 
 
-
+impl ConstDefault for SystemConfig {
+  const DEFAULT: Self = SystemConfig{
+    imports: Vec::new(), devices: Vec::new(),
+    circuits: Vec::new(), tasks: Vec::new()
+  };
+}

@@ -1,7 +1,7 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap};
 use serde::{Serialize, Deserialize};
 use super::{FieldType, FieldValue, rust::{RustTypeRef, StructTypeRef, TraitTypeRef}};
-use crate::util::{serde_helpers as sh};
+// use crate::util::{serde_helpers as sh};
 use crate::util::QualifiedPath;
 
 
@@ -18,6 +18,8 @@ pub struct BlockModule {
 pub struct BlockDefinition {
   pub name: String,
   #[serde(default)]
+  pub structural: Vec<StructuralDefinition>,
+  #[serde(default)]
   pub parameters: Vec<ParameterDefinition>,
   #[serde(default)]
   pub inputs: Vec<InputDefinition>,
@@ -29,124 +31,155 @@ pub struct BlockDefinition {
   pub peripherals: Vec<PeripheralReference>,
 }
 
-type FieldDefinitionVec = Vec<FieldValue>;
-type FieldDefinitionMap = HashMap<String, FieldValue>;
+// type FieldDefinitionVec = Vec<FieldValue>;
+// type FieldDefinitionMap = HashMap<String, FieldValue>;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-enum FieldAttrs {  
-  Vec(FieldDefinitionVec),
-  Map(FieldDefinitionMap)
-}
+// #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+// #[serde(untagged)]
+// enum FieldAttrs {  
+//   Vec(FieldDefinitionVec),
+//   Map(FieldDefinitionMap)
+// }
 
-impl FieldAttrs {
-  pub fn into_attr_map(self) -> FieldDefinitionMap {
-    match self {
-      FieldAttrs::Vec(x) => {
-        let mut res = HashMap::new();
-        if x.len() > 0 { res.insert("type".to_owned(), x[0].clone()); }
-        if x.len() > 1 { res.insert("default".to_owned(), x[1].clone()); }
-        res
-      },
-      FieldAttrs::Map(x) => x
-    }
-  }
-}
+// impl FieldAttrs {
+//   pub fn into_attr_map(self) -> FieldDefinitionMap {
+//     match self {
+//       FieldAttrs::Vec(x) => {
+//         let mut res = HashMap::new();
+//         if x.len() > 0 { res.insert("type".to_owned(), x[0].clone()); }
+//         if x.len() > 1 { res.insert("default".to_owned(), x[1].clone()); }
+//         res
+//       },
+//       FieldAttrs::Map(x) => x
+//     }
+//   }
+// }
 
-type FieldDef = HashMap<String, FieldAttrs>;
+// type FieldDef = HashMap<String, FieldAttrs>;
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "FieldDef")]
+#[serde(tag = "type")]
+pub enum StructuralDefinition {
+  Type(StructuralType),
+  Constant(StructuralConstant)
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct StructuralType {
+  pub name: String,
+  #[serde(default)]
+  pub restrictions: Vec<String>
+  // pub default: Option<String>
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct StructuralConstant {
+  pub name: String,
+  // pub default: Option<usize>
+}
+
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+// #[serde(try_from = "FieldDef")]
 pub struct ParameterDefinition {
   pub name: String,
+  #[serde(rename = "type")]
   pub tpe: FieldType,
   pub default: FieldValue
 }
 
-impl TryFrom<FieldDef> for ParameterDefinition {
-  type Error = anyhow::Error;
+// impl TryFrom<FieldDef> for ParameterDefinition {
+//   type Error = anyhow::Error;
 
-  fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
-    let (name, attr) = sh::map2tuple(value)?;
-    let attr_map = attr.into_attr_map();
-    let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for parameter definition"))?;
-    let tpe = FieldType::from_str(&tpe_val.as_text())?;
-    let default = attr_map.get("default")
-      .ok_or(anyhow::anyhow!("default value required for parameter definiction"))?.clone();
-    Ok(ParameterDefinition {
-      name, tpe, default,
-    })    
-  }
-}
+//   fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
+//     let (name, attr) = sh::map2tuple(value)?;
+//     let attr_map = attr.into_attr_map();
+//     let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for parameter definition"))?;
+//     let tpe = FieldType::from_str(&tpe_val.as_text())?;
+//     let default = attr_map.get("default")
+//       .ok_or(anyhow::anyhow!("default value required for parameter definiction"))?.clone();
+//     Ok(ParameterDefinition {
+//       name, tpe, default,
+//     })    
+//   }
+// }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "FieldDef")]
+// #[serde(try_from = "FieldDef")]
 pub struct InputDefinition {
   pub name: String,
-  pub tpe: FieldType,  
+  #[serde(rename = "type")]
+  pub tpe: FieldType,
+  pub size: Option<FieldValue>
 }
 
-impl TryFrom<FieldDef> for InputDefinition {
-  type Error = anyhow::Error;
+// impl TryFrom<FieldDef> for InputDefinition {
+//   type Error = anyhow::Error;
 
-  fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
-    let (name, attr) = sh::map2tuple(value)?;
-    let attr_map = attr.into_attr_map();
-    let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for input definition"))?;
-    let tpe = FieldType::from_str(&tpe_val.as_text())?;
-    Ok(InputDefinition {
-      name, tpe,
-    })    
-  }
-}
+//   fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
+//     let (name, attr) = sh::map2tuple(value)?;
+//     let attr_map = attr.into_attr_map();
+//     let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for input definition"))?;
+//     let tpe = FieldType::from_str(&tpe_val.as_text())?;
+//     let size = attr_map.get("size").map(|x| x.to_owned());
+//     Ok(InputDefinition {
+//       name, tpe, size
+//     })    
+//   }
+// }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "FieldDef")]
+// #[serde(try_from = "FieldDef")]
 pub struct OutputDefinition {
   pub name: String,
+  #[serde(rename = "type")]
   pub tpe: FieldType,
-  pub default: FieldValue
+  pub default: FieldValue,
+  pub size: Option<FieldValue>
 }
 
-impl TryFrom<FieldDef> for OutputDefinition {
-  type Error = anyhow::Error;
+// impl TryFrom<FieldDef> for OutputDefinition {
+//   type Error = anyhow::Error;
 
-  fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
-    let (name, attr) = sh::map2tuple(value)?;
-    let attr_map = attr.into_attr_map();
-    let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for output definition"))?;
-    let tpe = FieldType::from_str(&tpe_val.as_text())?;
-    let default = attr_map.get("default")
-      .ok_or(anyhow::anyhow!("default value required for output definition"))?.clone();
-    Ok(OutputDefinition {
-      name, tpe, default,
-    })    
-  }
-}
+//   fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
+//     let (name, attr) = sh::map2tuple(value)?;
+//     let attr_map = attr.into_attr_map();
+//     let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for output definition"))?;
+//     let tpe = FieldType::from_str(&tpe_val.as_text())?;
+//     let default = attr_map.get("default")
+//       .ok_or(anyhow::anyhow!("default value required for output definition"))?.clone();
+//     let size = attr_map.get("size").map(|x| x.to_owned());
+//     Ok(OutputDefinition {
+//       name, tpe, default, size
+//     })    
+//   }
+// }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[serde(try_from = "FieldDef")]
+// #[serde(try_from = "FieldDef")]
 pub struct DiscreteStateDefinition {
   pub name: String,
+  #[serde(rename = "type")]
   pub tpe: FieldType,
   pub initial: FieldValue  
 }
 
-impl TryFrom<FieldDef> for DiscreteStateDefinition {
-  type Error = anyhow::Error;
+// impl TryFrom<FieldDef> for DiscreteStateDefinition {
+//   type Error = anyhow::Error;
 
-  fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
-    let (name, attr) = sh::map2tuple(value)?;
-    let attr_map = attr.into_attr_map();
-    let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for discrete state definition"))?;
-    let tpe = FieldType::from_str(&tpe_val.as_text())?;
-    let initial = attr_map.get("initial").or(attr_map.get("default"))
-      .ok_or(anyhow::anyhow!("Initial value required for discrete state definition"))?.clone();
-    Ok(DiscreteStateDefinition {
-      name, tpe, initial,
-    })    
-  }
-}
+//   fn try_from(value: FieldDef) -> Result<Self, Self::Error> {
+//     let (name, attr) = sh::map2tuple(value)?;
+//     let attr_map = attr.into_attr_map();
+//     let tpe_val = attr_map.get("type").ok_or(anyhow::anyhow!("type required for discrete state definition"))?;
+//     let tpe = FieldType::from_str(&tpe_val.as_text())?;
+//     let initial = attr_map.get("initial").or(attr_map.get("default"))
+//       .ok_or(anyhow::anyhow!("Initial value required for discrete state definition"))?.clone();
+//     Ok(DiscreteStateDefinition {
+//       name, tpe, initial,
+//     })    
+//   }
+// }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]

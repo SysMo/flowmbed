@@ -4,7 +4,7 @@ use super::digital_output_auto::*;
 
 #[doc=" Implementation"]
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem for DigitalOutput<'a> {
+impl<'a> dscore::DynamicalSystem<'a> for DigitalOutput<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.current.initialize(*self.input);
@@ -29,9 +29,9 @@ struct Aux;
 impl Aux {
   fn apply(block: &mut DigitalOutput, value: bool) -> anyhow::Result<()> {
     if value {
-      block.output.set_high()?;
+      block.periph_out.set_high()?;
     } else {
-      block.output.set_low()?;
+      block.periph_out.set_low()?;
     }
     Ok(())
   }

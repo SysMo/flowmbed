@@ -4,9 +4,9 @@ use super::system::{DynamicalSystem, SystemStateInfo};
 use super::Float;
 
 pub trait SystemRunner {
-  fn init(&mut self) -> anyhow::Result<()>;
+  fn init(&mut self, system: &mut dyn DynamicalSystem) -> anyhow::Result<()>;
   // fn step(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()>;
-  fn run(&mut self) -> anyhow::Result<()>;
+  fn run(&mut self, system: &mut dyn DynamicalSystem) -> anyhow::Result<()>;
 }
 
 pub struct FixedStepRunSettings {
@@ -27,16 +27,16 @@ impl Default for FixedStepRunSettings {
   }
 }
 
-pub struct FixedStepRunner<'a> {
-  system: &'a mut dyn DynamicalSystem,
+#[allow(dead_code)]
+pub struct FixedStepRunner {
   settings: FixedStepRunSettings,
   t_last_print: Float,
 }
 
-impl<'a> FixedStepRunner<'a> {
-  pub fn new(system: &'a mut dyn DynamicalSystem, settings: FixedStepRunSettings) -> FixedStepRunner<'a> {
+impl FixedStepRunner {
+  pub fn new(settings: FixedStepRunSettings) -> Self {
     FixedStepRunner {
-      system: system, settings: settings, t_last_print: 0.0
+      settings: settings, t_last_print: 0.0
     }
   }
 
@@ -48,12 +48,12 @@ impl<'a> FixedStepRunner<'a> {
   }
 }
 
-impl<'a> SystemRunner for FixedStepRunner<'a> {
-  fn init(&mut self) -> anyhow::Result<()> {
-    self.system.init()
+impl SystemRunner for FixedStepRunner {
+  fn init(&mut self, system: &mut dyn DynamicalSystem) -> anyhow::Result<()> {
+    system.init()
   }
 
-  fn run(&mut self) -> anyhow::Result<()> {
+  fn run(&mut self, system: &mut dyn DynamicalSystem) -> anyhow::Result<()> {
     let mut ssi = SystemStateInfo {t: 0.0};
     let sleep_interval = std::time::Duration::from_micros(
       (self.settings.t_step * 1e6 / self.settings.speedup).round() as u64
@@ -61,7 +61,7 @@ impl<'a> SystemRunner for FixedStepRunner<'a> {
 
     while !self.is_done(&ssi) {
       ssi.t += self.settings.t_step;
-      self.system.step(&ssi)?;
+      system.step(&ssi)?;
       std::thread::sleep(sleep_interval);
     }
     Ok(())

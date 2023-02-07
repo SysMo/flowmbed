@@ -6,7 +6,7 @@ pub struct SystemStateInfo {
   // pub event: bool
 }
 
-pub trait DynamicalSystem {
+pub trait DynamicalSystem<'a> {
   fn connect(&mut self) -> anyhow::Result<()> { Ok(()) }
   fn init(&mut self) -> anyhow::Result<()>;
   fn step(&mut self, ssi: &SystemStateInfo) -> anyhow::Result<()>;

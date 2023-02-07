@@ -7,3 +7,6 @@ pub use bool_sink_auto::BoolSink;
 mod int_sink_auto;
 mod int_sink_impl;
 pub use int_sink_auto::IntSink;
+mod array_sink_auto;
+mod array_sink_impl;
+pub use array_sink_auto::ArraySink;

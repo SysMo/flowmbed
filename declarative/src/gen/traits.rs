@@ -1,7 +1,7 @@
 use genco::prelude::rust;
 
-use crate::util::GenerationContext;
+use crate::util::context::GenerationContext;
 
 pub trait CodeGenerator {
-  fn generate(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens>;
+  fn generate(&self, context: &dyn GenerationContext) -> anyhow::Result<rust::Tokens>;
 }

@@ -1,4 +1,5 @@
-use core::cell::{Cell, RefCell, RefMut};
+use core::cell::{Cell, RefCell, RefMut, UnsafeCell};
+use const_default::ConstDefault;
 use const_default_derive::ConstDefault;
 
 #[derive(Default, ConstDefault)]
@@ -21,7 +22,7 @@ impl<T> RefOnce<T> {
     Ok(())
   }
 
-  pub fn mut_ref<'a>(&'a self) -> anyhow::Result<RefMut<'a, T>> {
+  pub fn mut_ref<'a>(&self) -> anyhow::Result<RefMut<'a, T>> {
     if !self.taken.get() {
       if self.instance.borrow().is_some() {
         self.taken.set(true);
@@ -32,7 +33,10 @@ impl<T> RefOnce<T> {
             None => panic!("Unreachable code!"),
           }
         );
-        Ok(rfm)
+        let rfm = unsafe {
+          std::mem::transmute::<RefMut<'_, T>, RefMut<'a, T>>(rfm)
+        };
+        Ok(rfm)        
       } else {
         anyhow::bail!("Value not initialized")
       }
@@ -43,3 +47,54 @@ impl<T> RefOnce<T> {
 }
 
 unsafe impl<T> Sync for RefOnce<T> {}
+
+
+pub struct OnceCell<T> {
+    // Invariant: written to at most once.
+    inner: UnsafeCell<Option<T>>,
+}
+
+impl<T> OnceCell<T> {
+  /// Creates a new empty cell.
+  // #[must_use]
+  pub const fn new() -> OnceCell<T> {
+      OnceCell { inner: UnsafeCell::new(None) }
+  }
+
+  pub fn get(&self) -> anyhow::Result<&T> {
+      // SAFETY: Safe due to `inner`'s invariant
+      unsafe { &*self.inner.get() }.as_ref().ok_or_else(
+        || anyhow::anyhow!("OnceCell value not initialized")
+      )
+  }
+
+  pub fn get_mut(&mut self) -> anyhow::Result<&mut T> {
+    self.inner.get_mut().as_mut().ok_or_else(
+      || anyhow::anyhow!("OnceCell value not initialized")
+    )
+  }
+
+  pub fn set(&self, value: T) -> anyhow::Result<()> {
+    // SAFETY: Safe because we cannot have overlapping mutable borrows
+    let slot = unsafe { &*self.inner.get() };
+    if slot.is_some() {
+        anyhow::bail!("Attempt to initialize cell again!");
+    }
+
+    // SAFETY: This is the only place where we set the slot, no races
+    // due to reentrancy/concurrency are possible, and we've
+    // checked that slot is currently `None`, so this write
+    // maintains the `inner`'s invariant.
+    let slot = unsafe { &mut *self.inner.get() };
+    *slot = Some(value);
+    Ok(())
+  }
+
+}
+
+impl<T> ConstDefault for OnceCell<T> {
+  const DEFAULT: Self = OnceCell::new();
+}
+
+// We must know that only one thread will access a cell
+unsafe impl<T> Sync for OnceCell<T> {}

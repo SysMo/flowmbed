@@ -4,7 +4,7 @@ use super::counting_trigger_auto::*;
 
 #[doc=" Implementation"]
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem for CountingTrigger<'a> {
+impl<'a> dscore::DynamicalSystem<'a> for CountingTrigger<'a> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
     self.current.initialize(*self.initial_state);

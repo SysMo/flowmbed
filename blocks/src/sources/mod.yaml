@@ -3,19 +3,43 @@
 blocks:
   - name: SquareWaveSource
     parameters:
-      - period: [Float, 1.0]
-      - duty: [Float, 0.5]
-      - initial: [Bool, false]
+      - name: period
+        type: Float
+        default: 1.0
+      - name: duty
+        type: Float
+        default: 0.5
+      - name: initial
+        type: Bool
+        default: false
     outputs:
-      - output: [Bool, false]
+      - name: output
+        type: Bool
+        default: false
     discrete_states:
-      - current: [Bool, false]
-      - last_change: [Float, 0.0]
+      - name: current
+        type: Bool
+        initial: false
+      - name: last_change
+        type: Float
+        initial: 0.0
+
+
   - name: SineWaveSource
     parameters:
-      - period: [Float, 1.0]
-      - phase: [Float, 0.0]
-      - amplitude: [Float, 1.0]
-      - offset: [Float, 0.0]
+      - name: period
+        type: Float
+        default: 1.0
+      - name: phase
+        type: Float
+        default: 0.0
+      - name: amplitude
+        type: Float
+        default: 1.0
+      - name: offset
+        type: Float
+        default: 0.0
     outputs:
-      - output: [Float, 0.0]
+      - name: output
+        type: Float
+        default: 0.0

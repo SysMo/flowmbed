@@ -1,60 +1,60 @@
-use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core as ds_core;
 use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
 #[allow(dead_code)]
-pub struct AnalogReaderMultiChannelBlock<'a> {
+pub struct AnalogReaderMultiChannelBlock<'a, const N: usize> {
   // Inputs
   // Outputs
-  pub output1: dscore::Output<'a, dscore::Float>,
-  pub output2: dscore::Output<'a, dscore::Float>,
+  pub readings: ds_core::Output<[ds_core::Float; N]>,
   // Discrete states
   // Peripherals
-  pub sensor: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<2>>,
+  pub periph_reader: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<N>>,
 }
 
 /// Implement the block struct
 #[allow(dead_code)]
-impl<'a> AnalogReaderMultiChannelBlock<'a> {
-  pub fn builder() -> Builder<'a> {
+impl<'a, const N: usize> AnalogReaderMultiChannelBlock<'a, N> {
+  pub fn builder() -> Builder<'a, N> {
     Builder {
       __phantom: std::marker::PhantomData,
-      periph_sensor: None,
+      _periph_reader: None,
     }
   }
 }
 
-pub struct Builder<'a> {
+#[allow(non_snake_case)]
+pub struct Builder<'a, const N: usize> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_sensor: Option<DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<2>>>,
+  _periph_reader: Option<DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<N>>>,
 }
 
 #[allow(dead_code)]
-impl<'a> Builder<'a> {
+impl<'a, const N: usize> Builder<'a, N> {
 
-  pub fn sensor(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<2>>) -> Self {
-    self.periph_sensor = Some(v);
+  pub fn periph_reader(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<N>>) -> Self {
+    self._periph_reader = Some(v);
     self
   }
 }
 
-impl<'a> dscore::BlockBuilder<'a, AnalogReaderMultiChannelBlock<'a>> for Builder<'a> {
-  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> AnalogReaderMultiChannelBlock<'a> {
+#[allow(unused_variables)]
+impl<'a, const N: usize> ds_core::BlockBuilder<'a, AnalogReaderMultiChannelBlock<'a, N>> for Builder<'a, N> {
+  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> AnalogReaderMultiChannelBlock<'a, N> {
     AnalogReaderMultiChannelBlock {
 
-      output1: storage_builder.create_output(0e0),
-      output2: storage_builder.create_output(0e0),
+      readings: ds_core::Output::new(0e0),
 
-      sensor: self.periph_sensor.unwrap(),
+      periph_reader: self._periph_reader.unwrap(),
 
     }
   }
 }
 
-impl<'a> dscore::RequiresStorage for AnalogReaderMultiChannelBlock<'a> {
-  const SIZE: dscore::StorageSize = dscore::StorageSize {
+impl<'a, const N: usize> ds_core::RequiresStorage for AnalogReaderMultiChannelBlock<'a, N> {
+  const SIZE: ds_core::StorageSize = ds_core::StorageSize {
     r_param: 0, b_param: 0, i_param: 0,
-    r_out: 2, b_out: 0, i_out: 0,
+
     r_dstate: 0, b_dstate: 0, i_dstate: 0,
   };
 }

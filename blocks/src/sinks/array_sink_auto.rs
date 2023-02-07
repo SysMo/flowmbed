@@ -3,9 +3,9 @@ use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
 #[allow(dead_code)]
-pub struct BoolSink<'a> {
+pub struct ArraySink<'a, T: Copy + std::fmt::Display, const N: usize> {
   // Inputs
-  pub input: ds_core::Input<'a, ds_core::Bool>,
+  pub input: ds_core::Input<'a, [T; N]>,
   // Outputs
   // Discrete states
   // Peripherals
@@ -14,23 +14,25 @@ pub struct BoolSink<'a> {
 
 /// Implement the block struct
 #[allow(dead_code)]
-impl<'a> BoolSink<'a> {
-  pub fn builder() -> Builder<'a> {
+impl<'a, T: Copy + std::fmt::Display, const N: usize> ArraySink<'a, T, N> {
+  pub fn builder() -> Builder<'a, T, N> {
     Builder {
       __phantom: std::marker::PhantomData,
+      __phantom_T: std::marker::PhantomData,
       _sink: None,
     }
   }
 }
 
 #[allow(non_snake_case)]
-pub struct Builder<'a> {
+pub struct Builder<'a, T: Copy + std::fmt::Display, const N: usize> {
   __phantom: std::marker::PhantomData<&'a ()>,
+  __phantom_T: std::marker::PhantomData<T>,
   _sink: Option<DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>>,
 }
 
 #[allow(dead_code)]
-impl<'a> Builder<'a> {
+impl<'a, T: Copy + std::fmt::Display, const N: usize> Builder<'a, T, N> {
 
   pub fn sink(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>) -> Self {
     self._sink = Some(v);
@@ -39,9 +41,9 @@ impl<'a> Builder<'a> {
 }
 
 #[allow(unused_variables)]
-impl<'a> ds_core::BlockBuilder<'a, BoolSink<'a>> for Builder<'a> {
-  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> BoolSink<'a> {
-    BoolSink {
+impl<'a, T: Copy + std::fmt::Display, const N: usize> ds_core::BlockBuilder<'a, ArraySink<'a, T, N>> for Builder<'a, T, N> {
+  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> ArraySink<'a, T, N> {
+    ArraySink {
 
       input: ds_core::Input::new(),
 
@@ -51,7 +53,7 @@ impl<'a> ds_core::BlockBuilder<'a, BoolSink<'a>> for Builder<'a> {
   }
 }
 
-impl<'a> ds_core::RequiresStorage for BoolSink<'a> {
+impl<'a, T: Copy + std::fmt::Display, const N: usize> ds_core::RequiresStorage for ArraySink<'a, T, N> {
   const SIZE: ds_core::StorageSize = ds_core::StorageSize {
     r_param: 0, b_param: 0, i_param: 0,
 

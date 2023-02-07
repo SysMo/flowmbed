@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use strum::Display;
 use crate::dsl::device::{PeripheralConfig};
 use crate::gen::device::PeripheralConfigGenerator;
-use crate::util::GenerationContext;
+use crate::util::context::{GenerationContext, PeripheralContext};
 use genco::prelude::{rust, quote};
 use super::super::IMPORTS;
 
@@ -16,7 +16,7 @@ pub struct DigitalOutputPin {
 impl PeripheralConfig for DigitalOutputPin {}
 
 impl PeripheralConfigGenerator for DigitalOutputPin {
-  fn gen_type(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let gpio = &IMPORTS.gpio;
     let esp32hal = &IMPORTS.esp32hal;
     let pin_type = quote!(
@@ -25,14 +25,13 @@ impl PeripheralConfigGenerator for DigitalOutputPin {
     Ok(quote!(
       $(esp32hal)::DigitalOutputPin<'a, $(pin_type)>
     ))
-    // Ok(quote!($(gpio)::PinDriver::<'a, $(gpio)::Gpio$(&self.pin), $(gpio)::Output>))
-
   }
 
-  fn gen_initialize(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let gpio = &IMPORTS.gpio;
+    let var_internal_periph = context.find_device()?.var_internal_periph();
     Ok(quote!(
-      $(gpio)::PinDriver::output(peripherals.pins.gpio$(&self.pin))?.into()
+      $(gpio)::PinDriver::output($(var_internal_periph).pins.gpio$(&self.pin))?.into()
     ))
   }
 }
@@ -59,7 +58,7 @@ pub enum PullConfig {
 impl PeripheralConfig for DigitalInputPin {}
 
 impl PeripheralConfigGenerator for DigitalInputPin {
-  fn gen_type(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let gpio = &IMPORTS.gpio;
     let esp32hal = &IMPORTS.esp32hal;
     let pin_type = quote!(
@@ -71,12 +70,12 @@ impl PeripheralConfigGenerator for DigitalInputPin {
 
   }
 
-  fn gen_initialize(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let gpio = &IMPORTS.gpio;
+    let var_internal_periph = context.find_device()?.var_internal_periph();
     Ok(quote!({
-
       let mut driver = 
-        $(gpio)::PinDriver::input(peripherals.pins.gpio$(&self.pin))?;
+        $(gpio)::PinDriver::input($(var_internal_periph).pins.gpio$(&self.pin))?;
       driver.set_pull($(gpio)::Pull::$(&self.pull.to_string()))?;
       driver.into()
       

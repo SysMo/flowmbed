@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
 use strum::Display;
-use crate::dsl::device::{PeripheralConfig};
-use crate::gen::device::{PeripheralConfigGenerator, PeripheralGenerator};
-use crate::util::context::{GenerationContext, ContextObjectEnum};
+use crate::dsl::device::{PeripheralConfig, Peripheral};
+use crate::gen::device::{PeripheralConfigGenerator};
+use crate::util::context::{PeripheralContext};
+use crate::util::context::{GenerationContext};
 use genco::prelude::{rust, quote};
 use super::super::IMPORTS;
 
@@ -27,7 +28,7 @@ pub struct AnalogReaderMultiChannel {
   pub channels: Vec<AnalogChannel>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct AnalogChannel {
   pub pin: String,
@@ -83,7 +84,7 @@ pub enum AdcAttenuation {
 impl PeripheralConfig for AnalogReader {}
 
 impl PeripheralConfigGenerator for AnalogReader {
-  fn gen_type(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let gpio = &IMPORTS.gpio;
     let adc = &rust::import("esp_idf_hal", "adc");
     let atten = &self.attenuation.clone().unwrap_or_default();
@@ -98,21 +99,25 @@ impl PeripheralConfigGenerator for AnalogReader {
 
   }
 
-  fn gen_initialize(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
-    let gpio = &IMPORTS.gpio;
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
+    // let gpio = &IMPORTS.gpio;
     let adc = &rust::import("esp_idf_hal", "adc");
     let reader = &rust::import("flowmbed_esp32::hal", "ADCReader");
     let calibration = &self.calibration.unwrap_or(true);
     let resolution = &self.resolution.clone().unwrap_or_default();
+    let device_context = context.find_device()?;
+
     Ok(quote!(
       $(reader) {
         driver: $(adc)::AdcDriver::new(
-          peripherals.$(&self.adc.to_string()), 
+          $(device_context.var_internal_periph()).$(&self.adc.to_string()), 
           &adc::config::Config::new()
             .calibration($(calibration.to_string()))
             .resolution(adc::config::Resolution::$(resolution.to_string()))
         )?,
-        channel: adc::AdcChannelDriver::new(peripherals.pins.gpio$(&self.pin))?
+        channel: adc::AdcChannelDriver::new(
+          $(device_context.var_internal_periph()).pins.gpio$(&self.pin)
+        )?
       }
     ))
   }
@@ -122,34 +127,32 @@ impl PeripheralConfigGenerator for AnalogReader {
 impl PeripheralConfig for AnalogChannel {}
 
 impl PeripheralConfigGenerator for AnalogChannel {
-  fn gen_type(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
-    use std::any::Any;
+  fn gen_type(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
+    // use std::any::Any;
     let gpio = &IMPORTS.gpio;
     let hal = &IMPORTS.esp32hal;
     let adc = &IMPORTS.adc;
     let pin_type = quote!(
       $(gpio)::Gpio$(&self.pin)
     );
-    let adc_type = &(context.parent
-      .ok_or_else(|| anyhow::anyhow!("Analog channel should have a parent"))
-      .and_then(|x| match x.object {
-        ContextObjectEnum::Peripheral(adc) => Ok(adc),
-        _ => Err(anyhow::anyhow!("Analog channel parent should be a peripheral"))
-      })? as &dyn Any).downcast_ref::<AnalogReaderMultiChannel>()
-      .ok_or_else(|| anyhow::anyhow!("Analog channel should have an AnalogReaderMultiChannel parent"))?      
+
+    let adc_type = context.parent_peripheral_config_as::<AnalogReaderMultiChannel>()?
       .adc.get_type();
 
     let attenuation = &self.attenuation.clone().unwrap_or_default();
+    // let device_context = context.find_device()?;
+
     Ok(quote!(
       $(hal)::AnalogChannel<'a, $(pin_type), $(adc)::$(attenuation.to_string())<$(adc_type)>>
     ))
 
   }
 
-  fn gen_initialize(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let hal = &IMPORTS.esp32hal;
+    let device_context = context.find_device()?;
     Ok(quote!(
-      $(hal)::AnalogChannel::new(peripherals.pins.gpio$(&self.pin))?
+      $(hal)::AnalogChannel::new($(device_context.var_internal_periph()).pins.gpio$(&self.pin))?
     ))
   }
 }
@@ -159,47 +162,46 @@ impl PeripheralConfigGenerator for AnalogChannel {
 impl PeripheralConfig for AnalogReaderMultiChannel {}
 
 impl PeripheralConfigGenerator for AnalogReaderMultiChannel {
-  fn gen_type(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let hal = &IMPORTS.esp32hal;
-    let adc = &IMPORTS.adc;
+    // let adc = &IMPORTS.adc;
     let n_channels = self.channels.len();
     Ok(quote!(
       $(hal)::AnalogReaderMultiChannel<'a, $(self.adc.get_type()), $(n_channels.to_string())>
     ))
   }
 
-  fn gen_initialize(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let hal = &IMPORTS.esp32hal;
     let adc = &IMPORTS.adc;
     let adc_channel_config = "adc_channel_config";
+    let device_context = context.find_device()?;
     Ok(quote!(
       let $(adc_channel_config) = $(adc)::config::Config::new()
         .calibration(true);
   
       $(hal)::AnalogReaderMultiChannel {
         driver: $(adc)::AdcDriver::new(
-          peripherals.$(&self.adc.to_string()),
+          $(device_context.var_internal_periph()).$(&self.adc.to_string()),
           &$(adc_channel_config)
         )?,
         channels: [
-          $(for child_gen in self.child_peripherals(context) =>
-            MCU_PERIPHERALS.$(child_gen.context.id).mut_ref()?,$['\r']
+          $(for child in self.child_peripherals(context) =>
+            $(device_context.var_device_periph())
+              .$(context.push_peripheral(&child).long_id()).mut_ref()?,$['\r']
           )
         ]
       }
     ))
   }
 
-  fn child_peripherals<'a>(&'a self, context: &'a GenerationContext) -> Box<dyn Iterator<Item = PeripheralGenerator> + 'a> {    
-    Box::new(self.channels.iter().enumerate().map(|(i, ch)| {
-      PeripheralGenerator {
-        context: context.push(
-          &format!("channel_{}", i), 
-          ContextObjectEnum::Peripheral(ch)
-        ), 
-        config: ch
-      }          
-    }))
+  fn child_peripherals<'a>(&self, _context: &'a PeripheralContext) -> Vec<Peripheral> {    
+    self.channels.iter().enumerate().map(|(i, ch)| {
+      Peripheral {
+        id: format!("channel_{}", i).to_owned(),
+        config: Box::new((*ch).clone())
+      }
+    }).collect()
   }
 }
 

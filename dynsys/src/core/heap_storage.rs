@@ -1,5 +1,5 @@
 use super::system_storage::{StorageSize, StorageAccess, SystemStorageFacade, SystemStorageBuilder, VariableCreator, DefaultSystemStrorage};
-use super::variables::{Parameter, DiscreteState, Output};
+use super::variables::{Parameter, DiscreteState};
 use super::{Float, Int, Bool};
 
 #[derive(Debug)]
@@ -12,9 +12,9 @@ pub struct HeapSystemStorage {
   r_dstate: Vec<Float>,
   b_dstate: Vec<Bool>,
   i_dstate: Vec<Int>,
-  r_out: Vec<Float>,
-  b_out: Vec<Bool>,
-  i_out: Vec<Int>,
+  // r_out: Vec<Float>,
+  // b_out: Vec<Bool>,
+  // i_out: Vec<Int>,
 }
 
 impl HeapSystemStorage {
@@ -29,9 +29,9 @@ impl HeapSystemStorage {
       b_dstate: vec![false; size.b_dstate],
       i_dstate: vec![0; size.i_dstate],
 
-      r_out: vec![0.0; size.r_out],
-      b_out: vec![false; size.b_out],
-      i_out: vec![0; size.i_out],
+      // r_out: vec![0.0; size.r_out],
+      // b_out: vec![false; size.b_out],
+      // i_out: vec![0; size.i_out],
     }
   }
 }
@@ -90,9 +90,9 @@ heap_storage_impl_all!(DiscreteState, Float, r_dstate);
 heap_storage_impl_all!(DiscreteState, Bool, b_dstate);
 heap_storage_impl_all!(DiscreteState, Int, i_dstate);
 
-heap_storage_impl_all!(Output, Float, r_out);
-heap_storage_impl_all!(Output, Bool, b_out);
-heap_storage_impl_all!(Output, Int, i_out);
+// heap_storage_impl_all!(Output, Float, r_out);
+// heap_storage_impl_all!(Output, Bool, b_out);
+// heap_storage_impl_all!(Output, Int, i_out);
 
 // heap_storage_impl_all!(ContinuousState<'a, f64>, f64, r_state);
 // heap_storage_impl_access!(ContinuousStateDerivative<'a, f64>, f64, r_state_der);

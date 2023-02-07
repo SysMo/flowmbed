@@ -1,20 +1,24 @@
-use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core as ds_core;
 
-use super::analog_reader_block_auto::*;
+use super::pwm_multi_channel_block_auto::*;
 
 /// Implementation DynamicalSystem protocol
 #[allow(unused_variables)]
-impl<'a> dscore::DynamicalSystem<'a> for AnalogReaderBlock<'a> {
+impl<'a, const N: usize> ds_core::DynamicalSystem<'a> for PwmMultiChannelBlock<'a, N> {
   fn init(&mut self) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::init
-    self.output.initialize(self.periph_reader.read()?);
+    for i in 0..N {
+      self.periph_out.channel(i)?.set_duty(self.duty[i])?
+    }
     Ok(())
     // >>> End section @DynamicalSystem::init
   }
 
-  fn step(&mut self, ssi: &dscore::SystemStateInfo) -> anyhow::Result<()> {
+  fn step(&mut self, ssi: &ds_core::SystemStateInfo) -> anyhow::Result<()> {
     // >>> Begin section @DynamicalSystem::step
-    self.output.update(self.periph_reader.read()?, ssi);
+    for i in 0..N {
+      self.periph_out.channel(i)?.set_duty(self.duty[i])?
+    }
     Ok(())
     // >>> End section @DynamicalSystem::step
   }

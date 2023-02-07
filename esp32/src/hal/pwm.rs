@@ -7,7 +7,6 @@ use core::borrow::Borrow;
 use log::*;
 
 pub struct Esp32Ledc<'a> {
-  // timer_driver: ledc::LedcTimerDriver<'a>,
   driver: ledc::LedcDriver<'a>
 }
 
@@ -48,7 +47,7 @@ impl<'a> actuators::PwmChannel for Esp32Ledc<'a> {
 }
 
 pub struct Esp32LedcMultiChannel<'a, const N: usize> {
-  timer_driver: ledc::LedcTimerDriver<'a>,
+  // timer_driver: ledc::LedcTimerDriver<'a>,
   channel_drivers: [Option<Esp32Ledc<'a>>; N],
 }
 
@@ -60,7 +59,6 @@ impl<'a, const N: usize> Esp32LedcMultiChannel<'a, N> {
     f: Hertz,
     timer: impl Peripheral<P = impl ledc::LedcTimer> + 'a,
   ) -> anyhow::Result<Esp32LedcMultiChannelBuilder<'a, N>> {
-    use core::mem::MaybeUninit;
 
     let timer_config = 
       ledc::config::TimerConfig::new().frequency(f);
@@ -95,13 +93,14 @@ impl<'a, const N: usize> Esp32LedcMultiChannelBuilder<'a, N> {
     pin: impl Peripheral<P = impl gpio::OutputPin> + 'a,
   ) -> anyhow::Result<Self> {
     if self.n < N {
-      info!("Initializign PWM channel {}", self.n);
+      println!("Initializign PWM channel {}", self.n);
       self.channel_drivers[self.n] = Some(
         Esp32Ledc::new(
           ch, &self.timer_driver, pin
         )?        
       );
       self.n += 1;
+      println!("Initialized PWM channel {}", self.n);
       Ok(self)
     } else {
       anyhow::bail!("Channel capacity ({}) exceeded!", N)
@@ -112,8 +111,9 @@ impl<'a, const N: usize> Esp32LedcMultiChannelBuilder<'a, N> {
     if self.n < N {
       anyhow::bail!("Only {} out of {} PWM channels configured!", self.n, N)
     } else {
+      info!("Building the Esp32LedcMultiChannel");
       Ok(Esp32LedcMultiChannel {
-        timer_driver: self.timer_driver,
+        // timer_driver: self.timer_driver,
         channel_drivers: self.channel_drivers
       })  
     }

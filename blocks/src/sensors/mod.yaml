@@ -3,25 +3,36 @@
 blocks:
   - name: AnalogReaderBlock
     outputs:
-      - output: [Float, 0.0]
+      - name: output
+        type: Float
+        default: 0.0
     peripherals:
-      - name: sensor
+      - name: periph_reader
         direction: In
         trait: flowmbed_peripherals::sensors::traits::AnalogReader
   
   - name: AnalogReaderMultiChannelBlock
+    structural:
+      - name: N
+        type: Constant
+        
     outputs:
-      - output1: [Float, 0.0]
-      - output2: [Float, 0.0]
+      - name: readings
+        type: Float
+        default: 0.0
+        size: N
+
     peripherals:
-      - name: sensor
+      - name: periph_reader
         direction: In
-        trait: flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<2>
+        trait: flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel<N>
 
   - name: DigitalReaderBlock
     outputs:
-      - output: [Bool, false]
+      - name: output
+        type: Bool
+        default: false
     peripherals:
-      - name: sensor
+      - name: periph_reader
         direction: In
         trait: flowmbed_peripherals::sensors::traits::DigitalReader

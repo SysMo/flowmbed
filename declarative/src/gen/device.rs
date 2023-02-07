@@ -1,8 +1,7 @@
 use crate::dsl::device::{
-  Device,
+  Device, DeviceConfig, Peripheral, PeripheralConfig,
 }; 
-use crate::util::GenerationContext;
-use super::traits::CodeGenerator;
+use crate::util::context::{GenerationContext, DeviceContext, PeripheralContext};
 use genco::prelude::{rust, quote};
 #[allow(unused_imports)]
 use super::comments::{Comment, DocComment};
@@ -14,94 +13,112 @@ lazy_static! {
     rust::import("flowmbed_dynsys::util::containers","RefOnce");
 }
 pub struct DeviceGenerator<'a> {
-  pub device: &'a Device,
+  pub config: &'a dyn DeviceConfig,
+  pub context: DeviceContext<'a>,
 }
 
 impl<'a> DeviceGenerator<'a> {
-  pub fn new(device: &'a Device) -> Self {
-    DeviceGenerator { 
-      device
-    }
+  pub fn new(device: &'a Device, context: DeviceContext<'a>) -> Self {    
+    DeviceGenerator {
+      config: device.config.as_ref(),
+      context
+    }    
   }
-}
 
-impl<'a> CodeGenerator for DeviceGenerator<'a> {
-  fn generate(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens> {  
-    let device_name = &self.device.id;
+  fn gen_imports(&self) -> anyhow::Result<rust::Tokens> {
+    (self.config as &dyn DeviceConfigGenerator).gen_imports(&self.context)
+  }
 
-    let device_struct = &format!("{}Device",
-      device_name.from_case(Case::Snake).to_case(Case::UpperCamel));
+  fn gen_take_peripherals(&self) -> anyhow::Result<rust::Tokens> {
+    (self.config as &dyn DeviceConfigGenerator).gen_take_peripherals(&self.context)
+  }
 
+  fn decl_peripheral(&self, pg: PeripheralGenerator) -> anyhow::Result<rust::Tokens> {
+    let peripheral_id = pg.context.long_id();
+    Ok(quote!(
+      $(for child in pg.child_peripherals() =>
+        $(self.decl_peripheral(PeripheralGenerator::new(
+          &child, pg.context.push_peripheral(&child)
+        ))?)
+      )
+      $(peripheral_id): $(&*REF_ONCE)<$(pg.gen_type()?)>,$['\r']
+    ))
+  }
+
+  fn initialize_peripheral(&self, pg: PeripheralGenerator) -> anyhow::Result<rust::Tokens> {
+    let device_context = &self.context;
+    let var_device_peripherals = device_context.var_device_periph();
+    let peripheral_id = &pg.context.long_id();
+
+    Ok(quote!(
+      $(for child in pg.child_peripherals() =>
+        $(self.initialize_peripheral(PeripheralGenerator::new(
+          &child, pg.context.push_peripheral(&child)
+        ))?)
+      )
+      $(var_device_peripherals).$(peripheral_id).init({
+        $(pg.gen_initialize()?)
+      })?;$['\r']
+      println!("Initialized peripheral {}", stringify!($(peripheral_id)));
+    ))
+  }
+
+  pub fn generate(&self) -> anyhow::Result<rust::Tokens> {
+    let device_name = &self.context.id();
 
     let peripherals_struct = &format!("{}Peripherals",
       device_name.from_case(Case::Snake).to_case(Case::UpperCamel));
 
-    let conf_gen = self.device.gen();
-
-    let peripherals = self.device.config.peripherals();
-
-    fn create_id(ctx: &GenerationContext) -> String {
-      // TODO Trace the peripheral path up to the device to ensure unique name
-      ctx.id.clone()
-    }
-
-    fn decl_peripheral(pg: PeripheralGenerator) -> anyhow::Result<rust::Tokens> {
-      Ok(quote!(
-        $(for child_gen in pg.child_peripherals() =>
-          $(decl_peripheral(child_gen)?)
-        )
-        $(create_id(&pg.context)): $(&*REF_ONCE)<$(pg.gen_type()?)>,$['\r']
-      ))
-    }
-
-    fn initialize_peripheral(pg: PeripheralGenerator) -> anyhow::Result<rust::Tokens> {
-      Ok(quote!(
-        $(for child_gen in pg.child_peripherals() =>
-          $(initialize_peripheral(child_gen)?)
-        )
-
-        MCU_PERIPHERALS.$(create_id(&pg.context)).init({
-          $(pg.gen_initialize()?)
-        })?;$['\r']
-      ))
-    }
+    let peripherals = self.config.peripherals();
+    let device_context = &self.context;
 
     Ok(quote!(
-      $(conf_gen.gen_imports(context)?)
+      $(self.gen_imports()?)
+
       #[derive(const_default_derive::ConstDefault)]
       struct $(peripherals_struct)<'a> {
         __marker: std::marker::PhantomData<&'a ()>,
+        __pin: std::marker::PhantomPinned,
         $(for peripheral in peripherals =>
-          $(decl_peripheral(peripheral.gen(context))?)
+          $(self.decl_peripheral(PeripheralGenerator::new(
+            &peripheral,
+            self.context.push_peripheral(&peripheral)
+          ))?)
         )  
       }
 
       impl<'a> $(peripherals_struct)<'a> {
-        pub fn new() -> anyhow::Result<&'static $(peripherals_struct)<'static>> {
-          static MCU_PERIPHERALS: $(peripherals_struct)<'static> = $(peripherals_struct)::DEFAULT;
+        // pub fn init($(device_context.var_device_periph()): &'a mut $(peripherals_struct)<'a>) -> anyhow::Result<()> {
+        pub fn init(&mut self) -> anyhow::Result<()> {
+          let $(device_context.var_internal_periph()) = $(self.gen_take_peripherals()?);
 
-          let peripherals = $(conf_gen.gen_take_peripherals(&context)?);
-
-          $(for peripheral in peripherals =>
-            $(initialize_peripheral(peripheral.gen(context))?)
+          $(for peripheral in peripherals =>            
+            $(self.initialize_peripheral(PeripheralGenerator::new(
+              &peripheral,
+              self.context.push_peripheral(&peripheral)
+            ))?)
           )  
-
-          Ok(&MCU_PERIPHERALS)
+          Ok(())
         }
       }
-
-
     ))
   }
 }
 
 
 pub struct PeripheralGenerator<'a> {
-  pub context: GenerationContext<'a>,
-  pub config: &'a dyn PeripheralConfigGenerator
+  pub config: &'a dyn PeripheralConfig,
+  pub context: PeripheralContext<'a>,
 }
 
 impl<'a> PeripheralGenerator<'a> {
+  pub fn new(peripheral: &'a Peripheral, context: PeripheralContext<'a>) -> Self {    
+    PeripheralGenerator { 
+      config: peripheral.config.as_ref(),
+      context
+    }    
+  }
+
   fn gen_type(&self) -> anyhow::Result<rust::Tokens> {
     self.config.gen_type(&self.context)
   }
@@ -110,32 +127,21 @@ impl<'a> PeripheralGenerator<'a> {
     self.config.gen_initialize(&self.context)
   }
 
-  fn child_peripherals(&'a self) -> Box<dyn Iterator<Item = PeripheralGenerator> + 'a> {
+  fn child_peripherals(&self) -> Vec<Peripheral> {
     self.config.child_peripherals(&self.context)
   }
 }
-// pub struct PeripheralGenerator<'a> {
-//   pub peripheral: &'a Peripheral,
-// }
-
-// impl<'a> PeripheralGenerator<'a> {
-//   pub fn new(peripheral: &'a Peripheral) -> Self {
-//     PeripheralGenerator { 
-//       peripheral
-//     }
-//   }
-// }
 
 
 pub trait DeviceConfigGenerator {
-  fn gen_imports(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens>;
-  fn gen_take_peripherals(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens>;
+  fn gen_imports(&self, context: &DeviceContext) -> anyhow::Result<rust::Tokens>;
+  fn gen_take_peripherals(&self, context: &DeviceContext) -> anyhow::Result<rust::Tokens>;
 }
 
 pub trait PeripheralConfigGenerator {
-  fn gen_type(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens>;
-  fn gen_initialize(&self, context: &GenerationContext) -> anyhow::Result<rust::Tokens>;
-  fn child_peripherals<'a>(&'a self, context: &'a GenerationContext) -> Box<dyn Iterator<Item = PeripheralGenerator> + 'a> {
-    Box::new(core::iter::empty())
+  fn gen_type(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens>;
+  fn gen_initialize(&self, context: &PeripheralContext) -> anyhow::Result<rust::Tokens>;
+  fn child_peripherals(&self, _context: &PeripheralContext) -> Vec<Peripheral> {
+    Vec::new()
   }
 }

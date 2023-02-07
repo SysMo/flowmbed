@@ -1,4 +1,4 @@
-use flowmbed_dynsys::core as dscore;
+use flowmbed_dynsys::core as ds_core;
 use flowmbed_dynsys::core::DynRefMut;
 
 /// Declare the block struct
@@ -6,10 +6,10 @@ use flowmbed_dynsys::core::DynRefMut;
 pub struct DigitalReaderBlock<'a> {
   // Inputs
   // Outputs
-  pub output: dscore::Output<'a, dscore::Bool>,
+  pub output: ds_core::Output<ds_core::Bool>,
   // Discrete states
   // Peripherals
-  pub sensor: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>,
+  pub periph_reader: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>,
 }
 
 /// Implement the block struct
@@ -18,41 +18,43 @@ impl<'a> DigitalReaderBlock<'a> {
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
-      periph_sensor: None,
+      _periph_reader: None,
     }
   }
 }
 
+#[allow(non_snake_case)]
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  periph_sensor: Option<DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>>,
+  _periph_reader: Option<DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>>,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
 
-  pub fn sensor(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>) -> Self {
-    self.periph_sensor = Some(v);
+  pub fn periph_reader(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sensors::traits::DigitalReader>) -> Self {
+    self._periph_reader = Some(v);
     self
   }
 }
 
-impl<'a> dscore::BlockBuilder<'a, DigitalReaderBlock<'a>> for Builder<'a> {
-  fn build<ST: dscore::DefaultSystemStrorage>(self, storage_builder: &mut dscore::SystemStorageBuilder<'a, ST>) -> DigitalReaderBlock<'a> {
+#[allow(unused_variables)]
+impl<'a> ds_core::BlockBuilder<'a, DigitalReaderBlock<'a>> for Builder<'a> {
+  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> DigitalReaderBlock<'a> {
     DigitalReaderBlock {
 
-      output: storage_builder.create_output(false),
+      output: ds_core::Output::new(false),
 
-      sensor: self.periph_sensor.unwrap(),
+      periph_reader: self._periph_reader.unwrap(),
 
     }
   }
 }
 
-impl<'a> dscore::RequiresStorage for DigitalReaderBlock<'a> {
-  const SIZE: dscore::StorageSize = dscore::StorageSize {
+impl<'a> ds_core::RequiresStorage for DigitalReaderBlock<'a> {
+  const SIZE: ds_core::StorageSize = ds_core::StorageSize {
     r_param: 0, b_param: 0, i_param: 0,
-    r_out: 0, b_out: 1, i_out: 0,
+
     r_dstate: 0, b_dstate: 0, i_dstate: 0,
   };
 }

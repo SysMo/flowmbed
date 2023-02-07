@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use crate::dsl::device::{PeripheralConfig};
 use crate::gen::device::PeripheralConfigGenerator;
-use crate::util::GenerationContext;
+use crate::util::context::{PeripheralContext};
 use genco::prelude::{rust, quote};
 use super::super::IMPORTS;
 
@@ -15,12 +15,12 @@ pub struct SerialValueSink {
 impl PeripheralConfig for SerialValueSink {}
 
 impl PeripheralConfigGenerator for SerialValueSink {
-  fn gen_type(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_type(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let esp32hal = &IMPORTS.esp32hal;
     Ok(quote!($(esp32hal)::SerialValueSink))
   }
 
-  fn gen_initialize(&self, _: &GenerationContext) -> anyhow::Result<rust::Tokens> {
+  fn gen_initialize(&self, _: &PeripheralContext) -> anyhow::Result<rust::Tokens> {
     let esp32hal = &IMPORTS.esp32hal;
     Ok(quote!($(esp32hal)::SerialValueSink {}))
   }

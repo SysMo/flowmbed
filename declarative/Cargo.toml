@@ -1,6 +1,6 @@
 [package]
 name = "flowmbed_declarative"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,14 +19,15 @@ convert_case = "0.6.0"
 log = "0.4"
 simple_logger = "4.0"
 lazy_static="1.4.0"
+paste = "1.0"
 
-# TODO Remove when done testing
+const-default = "1.0"
+const-default-derive = "*"
+
 [dev-dependencies]
 embedded-hal = "0.2.7"
 flowmbed_dynsys = {path = "../dynsys/"}
 
-const-default = "1.0"
-const-default-derive = "*"
 
 [[bin]]
 name = "generate_blocks"
