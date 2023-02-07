@@ -9,11 +9,11 @@ pub struct Imports {
   pub OnceCell: rust::Import,
 }
 
-lazy_static!(
+lazy_static! {
   pub static ref IMPORTS: Imports = Imports {
     OnceCell: rust::import("flowmbed_dynsys::util::containers", "OnceCell"),
   };
-);
+}
 
 
 pub struct TaskGenerator<'a> {

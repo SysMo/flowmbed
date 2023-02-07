@@ -15,52 +15,33 @@ gen_system/%:
 	$(SETENV) && cargo +nightly run --bin generate_system -- $(FILE_PATH)
 
 
-examples/core_blocks: build/pre gen_blocks/blocks
-	$(SETENV) && cd ../blocks && cargo run --example 01_test_gen_block
+core_blocks: build/pre gen_blocks/blocks
+	$(SETENV) && cd ../blocks && cargo build
 
-
-# examples/01_blink: build/pre gen_system/systems/examples/01_blink
-# 	$(SETENV) && cd ../systems && cargo run --example 01_blink_gen
-
-# examples/02_blink_pwm: build/pre gen_system/systems/examples/02_blink_pwm
-# 	$(SETENV) && cd ../systems && cargo run --example 02_blink_pwm_gen
-
-# examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
-# 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
-
-# examples/03_blink_pwm: build/pre gen_system/systems/examples/03_blink_pwm
-# 	$(SETENV) && cd ../systems && cargo run --example 03_blink_pwm_gen
-
-examples/gen/%: build/pre
+_examples/%/gen: build/pre
 	echo Generating target $*
 	make gen_system/systems/examples/$*
 
-examples/build/%: build/pre
+_examples/%/build: build/pre
 	echo Generating target $*
 	make gen_system/systems/examples/$*
 	echo Building target $*
-	cd ../esp32 && . ~/export-esp.sh && make $*_gen/build
+	cd ../esp32 && . ~/export-esp.sh && make $*/build
 
-# gen_system/systems/examples/$*
-examples/flash/%: build/pre
+_examples/%/flash: build/pre
 	echo Generating target $*
 	make gen_system/systems/examples/$*
 	echo Building target $*
-	cd ../esp32 && . ~/export-esp.sh && make $*_gen/flash
+	cd ../esp32 && . ~/export-esp.sh && make $*/flash
 
+SYSTEM_EXAMPLES = 54_gpio_joystick
+define make-system-target	
+examples/$1/gen: _examples/$1/gen
+	echo Generated MCU files
+examples/$1/build: _examples/$1/build
+	echo Built MCU files
+examples/$1/flash: _examples/$1/flash
+	echo Flashed MCU firmware
+endef
 
-examples/54_temperature/build: examples/build/54_temperature
-examples/54_temperature/flash: examples/flash/54_temperature
-examples/54_temperature/gen: examples/gen/54_temperature
-
-
-# examples/%/run_system:
-# 	cargo run --example $*_gen
-
-# examples/blink: build/pre examples/51_blink/gen_system examples/51_blink/run_system
-
-
-
-
-# examples/blink_template:
-# 	cargo run --example 01_blink_system_template
+$(foreach element,$(SYSTEM_EXAMPLES),$(eval $(call make-system-target,$(element))))

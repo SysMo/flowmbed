@@ -59,6 +59,8 @@ impl CodeGenerator for SystemGenerator {
     
     let tokens = quote! {
       use flowmbed_core_blocks::cfg_device;
+      #[allow(unused_imports)]
+      use flowmbed_dynsys::core::{Float, Int, Bool, String};
       
       $(for device in &self.system.devices =>        
         $(DeviceGenerator::new(

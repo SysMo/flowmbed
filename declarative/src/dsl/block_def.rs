@@ -66,6 +66,7 @@ pub enum StructuralDefinition {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StructuralType {
   pub name: String,
   #[serde(default)]
@@ -74,6 +75,7 @@ pub struct StructuralType {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StructuralConstant {
   pub name: String,
   // pub default: Option<usize>
@@ -82,6 +84,7 @@ pub struct StructuralConstant {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 // #[serde(try_from = "FieldDef")]
+#[serde(deny_unknown_fields)]
 pub struct ParameterDefinition {
   pub name: String,
   #[serde(rename = "type")]
@@ -107,6 +110,7 @@ pub struct ParameterDefinition {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 // #[serde(try_from = "FieldDef")]
+#[serde(deny_unknown_fields)]
 pub struct InputDefinition {
   pub name: String,
   #[serde(rename = "type")]
@@ -131,11 +135,12 @@ pub struct InputDefinition {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 // #[serde(try_from = "FieldDef")]
+#[serde(deny_unknown_fields)]
 pub struct OutputDefinition {
   pub name: String,
   #[serde(rename = "type")]
   pub tpe: FieldType,
-  pub default: FieldValue,
+  pub default: Option<FieldValue>,
   pub size: Option<FieldValue>
 }
 
@@ -158,6 +163,7 @@ pub struct OutputDefinition {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 // #[serde(try_from = "FieldDef")]
+#[serde(deny_unknown_fields)]
 pub struct DiscreteStateDefinition {
   pub name: String,
   #[serde(rename = "type")]
@@ -225,6 +231,7 @@ impl PeripheralReference {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PeripheralReferenceType {
   pub name: String,
   pub direction: String,
@@ -234,6 +241,7 @@ pub struct PeripheralReferenceType {
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PeripheralReferenceTrait {
   pub name: String,
   pub direction: String,

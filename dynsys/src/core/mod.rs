@@ -6,7 +6,7 @@ pub mod system;
 pub mod system_runner;
 pub mod peripheral;
 
-pub use variables::{Parameter, Input, Output, DiscreteState};
+pub use variables::{Parameter, Input, Output, DiscreteState, create_default};
 pub use block::{Block, BlockBuilder};
 pub use system_storage::{
   DefaultSystemStrorage, StorageSize, SystemStorageBuilder,

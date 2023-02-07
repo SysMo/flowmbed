@@ -1,6 +1,16 @@
 ---
 
 blocks:
+  - name: FloatConstant
+    parameters:
+      - name: value
+        type: Float
+        default: 0.0
+    outputs:
+      - name: output
+        type: Float
+        default: 0.0
+
   - name: SquareWaveSource
     parameters:
       - name: period
@@ -27,18 +37,20 @@ blocks:
 
   - name: SineWaveSource
     parameters:
+      - name: amplitude
+        type: Float
+        default: 1.0
       - name: period
         type: Float
         default: 1.0
       - name: phase
         type: Float
         default: 0.0
-      - name: amplitude
-        type: Float
-        default: 1.0
       - name: offset
         type: Float
         default: 0.0
+    inputs:
+
     outputs:
       - name: output
         type: Float

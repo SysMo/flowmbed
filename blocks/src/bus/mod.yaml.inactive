@@ -1,0 +1,32 @@
+---
+
+blocks:
+  - name: ArraySplitter
+    structural:
+      - name: T
+        type: Type
+        restrictions: [Copy, Default]
+      - name: N
+        type: Constant
+    inputs:
+      - name: input
+        type: T
+        size: N
+    outputs:
+      - name: outputs
+        type: T
+
+  - name: ArrayJoiner
+    structural:
+      - name: T
+        type: Type
+        restrictions: [Copy, Default]
+      - name: N
+        type: Constant
+    inputs:
+      - name: inputs
+        type: T
+    outputs:
+      - name: output
+        type: T
+        size: N

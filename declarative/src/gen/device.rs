@@ -8,10 +8,17 @@ use super::comments::{Comment, DocComment};
 use convert_case::{Case, Casing};
 use lazy_static::lazy_static;
 
-lazy_static! {
-  pub static ref REF_ONCE: rust::Import = 
-    rust::import("flowmbed_dynsys::util::containers","RefOnce");
+#[allow(non_snake_case)]
+pub struct Imports {
+  pub RefOnce: rust::Import,
 }
+
+lazy_static! {
+  pub static ref IMPORTS: Imports = Imports { 
+    RefOnce: rust::import("flowmbed_dynsys::util::containers","RefOnce")
+  };
+}
+
 pub struct DeviceGenerator<'a> {
   pub config: &'a dyn DeviceConfig,
   pub context: DeviceContext<'a>,
@@ -41,7 +48,7 @@ impl<'a> DeviceGenerator<'a> {
           &child, pg.context.push_peripheral(&child)
         ))?)
       )
-      $(peripheral_id): $(&*REF_ONCE)<$(pg.gen_type()?)>,$['\r']
+      $(peripheral_id): $(&IMPORTS.RefOnce)<$(pg.gen_type()?)>,$['\r']
     ))
   }
 
@@ -59,7 +66,7 @@ impl<'a> DeviceGenerator<'a> {
       $(var_device_peripherals).$(peripheral_id).init({
         $(pg.gen_initialize()?)
       })?;$['\r']
-      println!("Initialized peripheral {}", stringify!($(peripheral_id)));
+      log::info!("Initialized peripheral {}", stringify!($(peripheral_id)));
     ))
   }
 

@@ -5,20 +5,14 @@ imports:
       - sinks
       - actuators
       - discrete
+      - bus
+      - transform
 
 devices:
   - id: esp_dev
     config:
       type: ESP32
       peripherals:
-        # - id: adc1
-        #   config:
-        #     type: AnalogReader
-        #     adc: adc1
-        #     resolution: 10bit
-        #     calibration: true
-        #     pin: 33
-        #     attenuation: 11dB
         - id: adc1
           config:
             type: AnalogReaderMultiChannel
@@ -95,6 +89,47 @@ circuits:
         inputs:
           input: sensor_button.output
 
+      - id: splitter1
+        kind: bus::ArraySplitter
+        structural: [Float, 2]
+        inputs:
+          input: sensor_adc.readings
+
+      - id: offset_ch1
+        kind: transform::Offset
+        parameters:
+          offset: -0.142
+        inputs:
+          input: splitter1.outputs[0]
+          
+      - id: gain_ch1
+        kind: transform::Gain
+        parameters:
+          gain: 0.3
+        inputs:
+          input: offset_ch1.output
+
+      - id: offset_ch2
+        kind: transform::Offset
+        parameters:
+          offset: -0.142
+        inputs:
+          input: splitter1.outputs[1]
+          
+      - id: gain_ch2
+        kind: transform::Gain
+        parameters:
+          gain: 0.3
+        inputs:
+          input: offset_ch2.output
+
+      - id: joiner1
+        kind: bus::ArrayJoiner
+        structural: [Float, 2]
+        inputs:
+          inputs[0]: gain_ch1.output
+          inputs[1]: gain_ch2.output
+
       - id: pwm1
         kind: actuators::PwmMultiChannelBlock
         structural:
@@ -102,7 +137,7 @@ circuits:
         peripherals:
           periph_out: led_pwm_1
         inputs:
-          duty: sensor_adc.readings
+          duty: joiner1.output
        
       - id: led1
         kind: actuators::DigitalOutput
@@ -115,7 +150,7 @@ circuits:
         kind: sinks::ArraySink
         structural: [f32, 2]
         inputs:
-          input: sensor_adc.readings
+          input: joiner1.output
         peripherals:
           sink: serial_peripheral
 

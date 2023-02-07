@@ -1,0 +1,27 @@
+---
+
+blocks:
+  - name: Gain
+    parameters:
+      - name: gain
+        type: Float
+        default: 1.0
+    inputs:
+      - name: input
+        type: Float
+    outputs:
+      - name: output
+        type: Float
+
+  - name: Offset
+    parameters:
+      - name: offset
+        type: Float
+        default: 0.0
+    inputs:
+      - name: input
+        type: Float
+    outputs:
+      - name: output
+        type: Float
+  

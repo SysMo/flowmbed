@@ -1,5 +1,8 @@
 use flowmbed_dynsys::core as ds_core;
 
+#[allow(unused_imports)]
+use flowmbed_dynsys::core::{Float, Int, Bool, String};
+
 /// Declare the block struct
 #[allow(dead_code)]
 pub struct CountingTrigger<'a> {

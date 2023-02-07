@@ -43,7 +43,7 @@ for Esp32AnalogChannel<'a, P, Attn>
 where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
   fn read(&mut self, driver: &mut adc::AdcDriver<'a, D>) -> Result<Float, anyhow::Error> {
     driver.read(&mut self.channel)
-      .map(|x| x as Float)
+      .map(|x| (x as Float) / 1000.0 )
       .map_err(|e| e.into())
   }
 }

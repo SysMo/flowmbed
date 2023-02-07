@@ -93,14 +93,12 @@ impl<'a, const N: usize> Esp32LedcMultiChannelBuilder<'a, N> {
     pin: impl Peripheral<P = impl gpio::OutputPin> + 'a,
   ) -> anyhow::Result<Self> {
     if self.n < N {
-      println!("Initializign PWM channel {}", self.n);
       self.channel_drivers[self.n] = Some(
         Esp32Ledc::new(
           ch, &self.timer_driver, pin
         )?        
       );
       self.n += 1;
-      println!("Initialized PWM channel {}", self.n);
       Ok(self)
     } else {
       anyhow::bail!("Channel capacity ({}) exceeded!", N)

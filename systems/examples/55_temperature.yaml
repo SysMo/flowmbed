@@ -1,0 +1,25 @@
+imports:
+  - package: flowmbed_core_blocks
+    paths:
+      - sensors
+      - sinks
+      - actuators
+      - discrete
+
+devices:
+  - id: esp_dev
+    config:
+      type: ESP32
+      peripherals: []
+
+circuits:
+  - id: TempMeasCircuit
+    device: esp_dev
+    blocks: []
+
+tasks:
+  - !FixedStepTask
+      id: MainTask
+      circuit: TempMeasCircuit
+      t_step: 0.1
+      speedup: 1.0

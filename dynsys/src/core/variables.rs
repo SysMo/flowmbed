@@ -115,6 +115,12 @@ impl<T: Copy, const N: usize> InitInto<[T; N]> for T {
   }
 }
 
+
+pub fn create_default<U: Default>() -> U {
+  Default::default()
+}
+
+
 pub struct Output<T: Copy> {
   pub value: T
 }

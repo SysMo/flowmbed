@@ -1,12 +1,14 @@
 use esp_idf_hal::{adc, gpio, units};
 use esp_idf_hal::peripherals::Peripherals;
-use flowmbed_core_blocks::{actuators as actuators, discrete as discrete, sensors as sensors, sinks as sinks};
+use flowmbed_core_blocks::{actuators as actuators, bus as bus, discrete as discrete, sensors as sensors, sinks as sinks, transform as transform};
 use flowmbed_dynsys::core as ds_core;
 use flowmbed_dynsys::core::{DynamicalSystem, RequirePeripherals, RequiresStorage};
 use flowmbed_dynsys::util::containers::{OnceCell, RefOnce};
 use flowmbed_esp32::hal as esp32hal;
 
 use flowmbed_core_blocks::cfg_device;
+#[allow(unused_imports)]
+use flowmbed_dynsys::core::{Float, Int, Bool, String};
 
 #[derive(const_default_derive::ConstDefault)]
 struct EspDevPeripherals<'a> {
@@ -32,11 +34,11 @@ impl<'a> EspDevPeripherals<'a> {
         self.adc1_channel_0.init({
             esp32hal::AnalogChannel::new(internal_peripherals.pins.gpio32)?
         })?;
-        println!("Initialized peripheral {}", stringify!(adc1_channel_0));
+        log::info!("Initialized peripheral {}", stringify!(adc1_channel_0));
         self.adc1_channel_1.init({
             esp32hal::AnalogChannel::new(internal_peripherals.pins.gpio33)?
         })?;
-        println!("Initialized peripheral {}", stringify!(adc1_channel_1));
+        log::info!("Initialized peripheral {}", stringify!(adc1_channel_1));
         self.adc1.init({
             let adc_channel_config = adc::config::Config::new()
                 .calibration(true);
@@ -54,18 +56,18 @@ impl<'a> EspDevPeripherals<'a> {
                 ]
             }
         })?;
-        println!("Initialized peripheral {}", stringify!(adc1));
+        log::info!("Initialized peripheral {}", stringify!(adc1));
         self.button1.init({
             {let mut driver =
                 gpio::PinDriver::input(internal_peripherals.pins.gpio21)?;
             driver.set_pull(gpio::Pull::Up)?;
             driver.into()}
         })?;
-        println!("Initialized peripheral {}", stringify!(button1));
+        log::info!("Initialized peripheral {}", stringify!(button1));
         self.led1.init({
             gpio::PinDriver::output(internal_peripherals.pins.gpio2)?.into()
         })?;
-        println!("Initialized peripheral {}", stringify!(led1));
+        log::info!("Initialized peripheral {}", stringify!(led1));
         self.led_pwm_1.init({
             esp32hal::PwmMultiChannel::builder(units::Hertz(1000), internal_peripherals.ledc.timer0)?
             .add_channel(
@@ -76,11 +78,11 @@ impl<'a> EspDevPeripherals<'a> {
                 internal_peripherals.pins.gpio17)?
             .build()?
         })?;
-        println!("Initialized peripheral {}", stringify!(led_pwm_1));
+        log::info!("Initialized peripheral {}", stringify!(led_pwm_1));
         self.serial_peripheral.init({
             esp32hal::SerialValueSink {}
         })?;
-        println!("Initialized peripheral {}", stringify!(serial_peripheral));
+        log::info!("Initialized peripheral {}", stringify!(serial_peripheral));
         Ok(())
     }
 }
@@ -91,6 +93,12 @@ struct TempMeasCircuit<'a> {
     sensor_adc: sensors::AnalogReaderMultiChannelBlock<'a, 2>,
     sensor_button: sensors::DigitalReaderBlock<'a>,
     count_trigger: discrete::CountingTrigger<'a>,
+    splitter1: bus::ArraySplitter<'a, Float, 2>,
+    offset_ch1: transform::Offset<'a>,
+    gain_ch1: transform::Gain<'a>,
+    offset_ch2: transform::Offset<'a>,
+    gain_ch2: transform::Gain<'a>,
+    joiner1: bus::ArrayJoiner<'a, Float, 2>,
     pwm1: actuators::PwmMultiChannelBlock<'a, 2>,
     led1: actuators::DigitalOutput<'a>,
     print1: sinks::ArraySink<'a, f32, 2>,
@@ -114,7 +122,25 @@ impl<'a> TempMeasCircuit<'a> {
                 ::builder().periph_reader(peripherals.button1.mut_ref()?).build(&mut builder)}
             ,
             count_trigger:{discrete::CountingTrigger
-                ::builder().initial_count(0).pulses_up(1).pulses_down(2).build(&mut builder)}
+                ::builder().pulses_up(1).pulses_down(2).initial_count(0).build(&mut builder)}
+            ,
+            splitter1:{bus::ArraySplitter
+                ::builder().build(&mut builder)}
+            ,
+            offset_ch1:{transform::Offset
+                ::builder().offset(-0.142).build(&mut builder)}
+            ,
+            gain_ch1:{transform::Gain
+                ::builder().gain(0.3).build(&mut builder)}
+            ,
+            offset_ch2:{transform::Offset
+                ::builder().offset(-0.142).build(&mut builder)}
+            ,
+            gain_ch2:{transform::Gain
+                ::builder().gain(0.3).build(&mut builder)}
+            ,
+            joiner1:{bus::ArrayJoiner
+                ::builder().build(&mut builder)}
             ,
             pwm1:{actuators::PwmMultiChannelBlock
                 ::builder().periph_out(peripherals.led_pwm_1.mut_ref()?).build(&mut builder)}
@@ -137,9 +163,16 @@ impl<'a> TempMeasCircuit<'a> {
 impl<'a> DynamicalSystem<'a> for TempMeasCircuit<'a> {
     fn connect(&mut self) -> anyhow::Result<()> {
         self.count_trigger.input.connect(&self.sensor_button.output)?;
-        self.pwm1.duty.connect(&self.sensor_adc.readings)?;
+        self.splitter1.input.connect(&self.sensor_adc.readings)?;
+        self.offset_ch1.input.connect(&self.splitter1.outputs[0])?;
+        self.gain_ch1.input.connect(&self.offset_ch1.output)?;
+        self.offset_ch2.input.connect(&self.splitter1.outputs[1])?;
+        self.gain_ch2.input.connect(&self.offset_ch2.output)?;
+        self.joiner1.inputs[0].connect(&self.gain_ch1.output)?;
+        self.joiner1.inputs[1].connect(&self.gain_ch2.output)?;
+        self.pwm1.duty.connect(&self.joiner1.output)?;
         self.led1.input.connect(&self.count_trigger.output)?;
-        self.print1.input.connect(&self.sensor_adc.readings)?;
+        self.print1.input.connect(&self.joiner1.output)?;
         Ok(())
     }
 
@@ -147,6 +180,12 @@ impl<'a> DynamicalSystem<'a> for TempMeasCircuit<'a> {
         self.sensor_adc.init()?;
         self.sensor_button.init()?;
         self.count_trigger.init()?;
+        self.splitter1.init()?;
+        self.offset_ch1.init()?;
+        self.gain_ch1.init()?;
+        self.offset_ch2.init()?;
+        self.gain_ch2.init()?;
+        self.joiner1.init()?;
         self.pwm1.init()?;
         self.led1.init()?;
         self.print1.init()?;
@@ -157,6 +196,12 @@ impl<'a> DynamicalSystem<'a> for TempMeasCircuit<'a> {
         self.sensor_adc.step(ssi)?;
         self.sensor_button.step(ssi)?;
         self.count_trigger.step(ssi)?;
+        self.splitter1.step(ssi)?;
+        self.offset_ch1.step(ssi)?;
+        self.gain_ch1.step(ssi)?;
+        self.offset_ch2.step(ssi)?;
+        self.gain_ch2.step(ssi)?;
+        self.joiner1.step(ssi)?;
         self.pwm1.step(ssi)?;
         self.led1.step(ssi)?;
         self.print1.step(ssi)?;
@@ -177,6 +222,12 @@ impl<'a> RequiresStorage for TempMeasCircuit<'a> {
             .add(sensors::AnalogReaderMultiChannelBlock::<2>::SIZE)
             .add(sensors::DigitalReaderBlock::SIZE)
             .add(discrete::CountingTrigger::SIZE)
+            .add(bus::ArraySplitter::<Float, 2>::SIZE)
+            .add(transform::Offset::SIZE)
+            .add(transform::Gain::SIZE)
+            .add(transform::Offset::SIZE)
+            .add(transform::Gain::SIZE)
+            .add(bus::ArrayJoiner::<Float, 2>::SIZE)
             .add(actuators::PwmMultiChannelBlock::<2>::SIZE)
             .add(actuators::DigitalOutput::SIZE)
             .add(sinks::ArraySink::<f32, 2>::SIZE)

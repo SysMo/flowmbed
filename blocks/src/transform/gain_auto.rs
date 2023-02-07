@@ -1,27 +1,28 @@
 use flowmbed_dynsys::core as ds_core;
-use flowmbed_dynsys::core::DynRefMut;
 
 #[allow(unused_imports)]
 use flowmbed_dynsys::core::{Float, Int, Bool, String};
 
 /// Declare the block struct
 #[allow(dead_code)]
-pub struct FloatSink<'a> {
+pub struct Gain<'a> {
+  // Parameters
+  pub gain: ds_core::Parameter<'a, ds_core::Float>,
   // Inputs
   pub input: ds_core::Input<'a, ds_core::Float>,
   // Outputs
+  pub output: ds_core::Output<ds_core::Float>,
   // Discrete states
   // Peripherals
-  pub sink: DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>,
 }
 
 /// Implement the block struct
 #[allow(dead_code)]
-impl<'a> FloatSink<'a> {
+impl<'a> Gain<'a> {
   pub fn builder() -> Builder<'a> {
     Builder {
       __phantom: std::marker::PhantomData,
-      _sink: None,
+      val_gain: 1e0,
     }
   }
 }
@@ -29,34 +30,34 @@ impl<'a> FloatSink<'a> {
 #[allow(non_snake_case)]
 pub struct Builder<'a> {
   __phantom: std::marker::PhantomData<&'a ()>,
-  _sink: Option<DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>>,
+  val_gain: ds_core::Float,
 }
 
 #[allow(dead_code)]
 impl<'a> Builder<'a> {
-
-  pub fn sink(mut self, v: DynRefMut<'a, dyn flowmbed_peripherals::sinks::traits::ValueSink>) -> Self {
-    self._sink = Some(v);
+  pub fn gain(mut self, v: ds_core::Float) -> Self {
+    self.val_gain = v;
     self
   }
 }
 
 #[allow(unused_variables)]
-impl<'a> ds_core::BlockBuilder<'a, FloatSink<'a>> for Builder<'a> {
-  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> FloatSink<'a> {
-    FloatSink {
+impl<'a> ds_core::BlockBuilder<'a, Gain<'a>> for Builder<'a> {
+  fn build<ST: ds_core::DefaultSystemStrorage>(self, storage_builder: &mut ds_core::SystemStorageBuilder<'a, ST>) -> Gain<'a> {
+    Gain {
+      gain: storage_builder.create_param(self.val_gain),
 
       input: ds_core::Input::new(),
 
-      sink: self._sink.unwrap(),
+      output: ds_core::Output::new(ds_core::create_default::<Float>()),
 
     }
   }
 }
 
-impl<'a> ds_core::RequiresStorage for FloatSink<'a> {
+impl<'a> ds_core::RequiresStorage for Gain<'a> {
   const SIZE: ds_core::StorageSize = ds_core::StorageSize {
-    r_param: 0, b_param: 0, i_param: 0,
+    r_param: 1, b_param: 0, i_param: 0,
 
     r_dstate: 0, b_dstate: 0, i_dstate: 0,
   };

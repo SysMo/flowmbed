@@ -1,6 +1,5 @@
-# SERIAL=/dev/ttyACM0
-# SERIAL=/dev/ttyUSB0
 # include credentials.vars
+BAUD_RATE = 460800
 
 terminal/clear:
 	clear
@@ -17,35 +16,26 @@ deepclean:
 	rm -rf target
 	rm -rf .embuild
 
-# build:
-# 	cargo espflash save-image --target xtensa-esp32-espidf ESP32 program.bin
+examples/%/build: build/pre
+	. ~/export-esp.sh && cargo espflash save-image --release --example $*_gen ESP32 program.bin
 
-# flash:
-# 	cargo espflash --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+examples/%/flash: build/pre
+	. ~/export-esp.sh && cargo espflash --speed=460080 --release --example $*_gen --partition-table partitions.csv --monitor $(SERIAL)
 
-example/build/%: build/pre
+bin/%/build: build/pre
 	. ~/export-esp.sh && cargo espflash save-image --release --example $* ESP32 program.bin
 
-example/flash/%: build/pre
-	. ~/export-esp.sh && cargo espflash --release --example $* --speed=921600 --partition-table partitions.csv --monitor $(SERIAL)
+bin/%/flash: build/pre
+	. ~/export-esp.sh && cargo espflash --release --example $* --partition-table partitions.csv --monitor $(SERIAL)
+
 
 monitor:
 	cargo espflash serial-monitor ${SERIAL}
 
-01_blink_gen/build:  example/build/01_blink_gen
-01_blink_gen/flash:  example/flash/01_blink_gen
+SYSTEM_EXAMPLES = 54_gpio_joystick
+define make-system-target	
+$1/build: examples/$1/build
+$1/flash: examples/$1/flash
+endef
 
-02_blink_pwm_gen/build:  example/build/02_blink_pwm_gen
-02_blink_pwm_gen/flash:  example/flash/02_blink_pwm_gen
-
-03_blink_pwm_gen/build:  example/build/03_blink_pwm_gen
-03_blink_pwm_gen/flash:  example/flash/03_blink_pwm_gen
-
-04_ds18b20/build:  example/build/04_ds18b20
-04_ds18b20/flash:  example/flash/04_ds18b20
-
-10_gpio/build:  example/build/10_gpio
-10_gpio/flash:  example/flash/10_gpio
-
-54_temperature_gen/build:  example/build/54_temperature_gen
-54_temperature_gen/flash:  example/flash/54_temperature_gen
+$(foreach element,$(SYSTEM_EXAMPLES),$(eval $(call make-system-target,$(element))))

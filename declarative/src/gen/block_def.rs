@@ -3,6 +3,7 @@ use std::path;
 use genco::prelude::{rust, quote};
 use lazy_static::lazy_static;
 use crate::dsl::FieldValue;
+use crate::dsl::block_def::OutputDefinition;
 use crate::dsl::block_def::StructuralDefinition;
 use crate::dsl::block_def::StructuralType;
 use crate::dsl::rust::{RustTypeRef};
@@ -357,7 +358,7 @@ impl<'a> BlockAutoGenerator<'a> {
 
             $(if !self.block_def.outputs.is_empty() =>    
               $(for field in &self.block_def.outputs join (,$['\r']) => 
-                $(self.init_output(&field.name, &field.default.as_text()))
+                $(self.init_output(field))
               ),
             )
       
@@ -404,10 +405,19 @@ impl<'a> BlockAutoGenerator<'a> {
     )
   }
 
-  fn init_output(&self, name: &str, value_source: &str) -> rust::Tokens {
+  fn init_output(&self, output: &OutputDefinition) -> rust::Tokens {    
     let ds_core = &IMPORTS.ds_core;
+    // &field.name, &field.default.as_text()
+    let name = &output.name;
+    let tpe = match &output.tpe {
+        FieldType::Generic(x) => x.to_owned(),
+        v => v.to_string()
+    };
+    let init_value = output.default.as_ref()
+      .map(|x| quote!($(x.as_text())))
+      .unwrap_or(quote!($(ds_core)::create_default::<$(tpe)>()));
     quote!(
-      $(name): $(ds_core)::Output::new($(value_source))
+      $(name): $(ds_core)::Output::new($(init_value))
     )
   }
 
@@ -462,6 +472,9 @@ impl<'a> CodeGenerator for BlockAutoGenerator<'a> {
   fn generate(&self, _: &dyn GenerationContext) -> anyhow::Result<rust::Tokens> {
     
     Ok(quote!(
+      #[allow(unused_imports)]
+      use flowmbed_dynsys::core::{Float, Int, Bool, String};
+
       $(self.declare_block()?)
 
       $(self.implement_block()?)
