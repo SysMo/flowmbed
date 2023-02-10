@@ -8,4 +8,4 @@ flowmbed is a platform for easy implementation of control logic using causal blo
 
 See:
 
-  - [Example 1](systems/examples/54_temperature.yaml)
+  - [GPIO/Joystick/LED](systems/examples/54_gpio_joystick.yaml)
