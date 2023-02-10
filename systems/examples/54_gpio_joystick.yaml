@@ -49,20 +49,10 @@ devices:
                 pin: 16
               - id: channel1
                 pin: 17
-        # - id: t1
-        #   config: 
-        #     type: DS18B20Array
-        #     pin: 
-        #       type: DigitalInOutPin
-        #       pin: 4
-        #       open_drain: true
 
         - id: serial_peripheral
           config:
             type: SerialValueSink
-        # - id: serial2
-        #   config:
-        #     type: SerialValueSink
 
 circuits:
   - id: TempMeasCircuit
@@ -70,15 +60,12 @@ circuits:
     blocks:
       - id: sensor_adc
         kind: sensors::AnalogReaderMultiChannelBlock
-        structural:
-          - 2
-        peripherals:
-          periph_reader: adc1
+        structural: [2]
+        peripherals: {periph_reader: adc1}
 
       - id: sensor_button
         kind: sensors::DigitalReaderBlock
-        peripherals:
-          periph_reader: button1
+        peripherals: {periph_reader: button1}          
 
       - id: count_trigger
         kind: discrete::CountingTrigger

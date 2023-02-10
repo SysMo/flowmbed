@@ -36,7 +36,9 @@ flowmbed_peripherals = {path = "../peripherals/"}
 url = "2"
 
 
-# # Peripherals
+#########  Peripherals ########
+nb = "1.0.0"
+ads1x1x = "0.2.2"
 # one-wire-bus = "0.1.1"
 # ds18b20 = "0.1.1"
 
