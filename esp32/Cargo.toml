@@ -34,7 +34,8 @@ flowmbed_core_blocks = {path = "../blocks/", features = ["esp32"]}
 flowmbed_peripherals = {path = "../peripherals/"}
 
 url = "2"
-
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
 
 #########  Peripherals ########
 nb = "1.0.0"
