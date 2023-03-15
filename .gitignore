@@ -6,3 +6,5 @@ Cargo.lock
 credentials.vars
 /__OLD__
 doc_internal
+server_stack/data
+server_stack/secrets.env

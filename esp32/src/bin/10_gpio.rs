@@ -6,7 +6,6 @@ use esp_idf_hal::gpio;
 use esp_idf_hal::adc;
 use flowmbed_peripherals::actuators::traits::PwmMultiChannel;
 use flowmbed_peripherals::sensors::traits::AnalogReaderMultiChannel;
-use flowmbed_peripherals::sensors::{DS18B20Array, DS18B20Resolution};
 use flowmbed_peripherals::sensors::traits::{AnalogReader};
 use flowmbed_dynsys::{util::containers::RefOnce};
 use flowmbed_esp32::hal;
@@ -110,16 +109,7 @@ fn test_pwm() -> anyhow::Result<()> {
   Ok(())
 }
 
-fn test_ds18b20() -> anyhow::Result<()> {
-  let peripherals = Peripherals::take().unwrap();
-  // // DS18B20  
-  // let mut pin = gpio::PinDriver::input_output_od(peripherals.pins.gpio4)?;
-  // let mut one = DS18B20Array::new(pin, Ets)?;
-  // one.set_resolution(DS18B20Resolution::Bits9)?;
-  // println!("{}", one.get_temperature()?);
 
-  Ok(())
-}
 
 fn main() -> anyhow::Result<()> {
   esp_idf_svc::log::EspLogger::initialize_default();
@@ -129,8 +119,6 @@ fn main() -> anyhow::Result<()> {
   // test_multichannel_adc(p)?;
   // test_multichannel_adc();
   test_pwm()?;
-  // test_ds18b20();
-
   
   Ok(())
 }

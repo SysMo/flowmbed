@@ -23,4 +23,5 @@ pub use f32 as Float;
 pub use String;
 
 pub use std::cell::Ref as DynRef;
-pub use std::cell::RefMut as DynRefMut;
+// pub use std::cell::RefMut as DynRefMut;
+pub type DynRefMut<'a, T> = &'a mut T; 

@@ -51,7 +51,7 @@ where Attn: adc::Attenuation<<P as gpio::ADCPin>::Adc> {
 pub struct Esp32AnalogReaderMultiChannel<'a, D: adc::Adc, const N: usize>
 {
   pub driver: adc::AdcDriver<'a, D>,
-  pub channels: [DynRefMut<'a, dyn Esp32AnalogChannelReader<'a, D>>; N]
+  pub channels: [&'a mut dyn Esp32AnalogChannelReader<'a, D>; N]
 }
 
 impl<'a, D: adc::Adc, const N: usize> sensors::AnalogReaderMultiChannel<N>

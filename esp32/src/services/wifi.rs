@@ -16,8 +16,8 @@ struct Config {
 }
 
 static config: Config = Config {
-  ssid: env!("RUST_ESP32_STD_DEMO_WIFI_SSID"),
-  password: env!("RUST_ESP32_STD_DEMO_WIFI_PASS"),
+  ssid: env!("ESP32_WIFI_SSID"),
+  password: env!("ESP32_WIFI_PASS"),
   channel: Some(1)
 };
 
@@ -57,11 +57,18 @@ pub fn start(
     config.ssid, net.channel);
 
   wifi.set_configuration(&Configuration::Client(
+    // ClientConfiguration {
+    //   ssid: config.ssid.into(),
+    //   password: config.password.into(),
+    //   auth_method: AuthMethod::None,
+    //   ..Default::default()
+    // },
+
       ClientConfiguration {
           ssid: config.ssid.into(),
           password: config.password.into(),
           ..Default::default()
-      },
+      }
 
     //   AccessPointConfiguration {
     //       ssid: "aptest".into(),
