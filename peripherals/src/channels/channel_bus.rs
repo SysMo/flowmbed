@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use crate::util::QualifiedPath;
-use crate::mqtt::{MqttService, MqttPublisher, MqttSubscriber, MessageSender, MessageReceiver};
+use crate::mqtt::{MqttService, MessageSender, MessageReceiver};
 
 // pub enum StreamChannelDirection {
 //   Forward, Reverse, BiDirectional

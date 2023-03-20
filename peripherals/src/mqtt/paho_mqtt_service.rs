@@ -1,7 +1,6 @@
-use log::warn;
 use paho_mqtt as mqtt;
-use futures::{executor::block_on, stream::StreamExt, AsyncReadExt};
-use std::{future::Future, collections::HashMap};
+use futures::{executor::block_on, stream::StreamExt};
+use std::collections::HashMap;
 use super::mqtt_service::{MqttServiceOptions, MqttPublisher, StrMessage, MqttSubscriber, MqttService};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
@@ -48,7 +47,9 @@ impl PahoMqttService {
 
       let subscribers = paho.subscribers.clone();
 
-      std::thread::spawn(move || {
+      std::thread::Builder::new()
+        .name("mqtt_receiver".to_owned())
+        .spawn(move || {
         block_on(async {
           while let Some(msg_opt) = msg_receiver.next().await {
             if let Some(msg) = msg_opt {
@@ -60,7 +61,7 @@ impl PahoMqttService {
                 Some(sub) => {
                   match sub.send(payload.to_owned()) {
                     Ok(_) => (),
-                    Err(e) => {
+                    Err(_) => {
                       log::warn!("no receiver!")
                     },
                 }
@@ -72,19 +73,21 @@ impl PahoMqttService {
             }
           }  
         });
-      });
+      }).unwrap();
   
     let (publisher_tx, publisher_rx) = mpsc::channel::<StrMessage>();
     paho.publisher = Some(publisher_tx);
     
-    std::thread::spawn(move || {
+    std::thread::Builder::new()
+      .name("mqtt_sender".to_owned())
+      .spawn(move || {
         loop {
           let msg_str = publisher_rx.recv().unwrap();
           log::info!("Publishing message: [{}] {}", msg_str.topic, msg_str.payload);
           let msg = mqtt::Message::new(msg_str.topic, msg_str.payload, mqtt::QOS_0);
           client_arc.publish(msg);
         }
-      });
+      })?;
 
       Ok::<(), mqtt::Error>(())
     }) {

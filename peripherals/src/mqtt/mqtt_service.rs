@@ -1,13 +1,9 @@
-use paho_mqtt::Message;
+use log::*;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use std::{sync::mpsc, any};
+use std::sync::mpsc;
 use super::{MessageReceiver, MessageSender};
-use log::*;
-// use crate::channels::{MessageSender, MessageReceiver, IOConnector, ChannelBus, 
-//   ForwardChannel, ReverseChannel, MeasurementChannel, SetValueChannel};
-use crate::util::QualifiedPath;
 
 pub struct MqttServiceOptions {
   pub host: String, 

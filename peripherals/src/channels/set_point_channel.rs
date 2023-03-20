@@ -1,6 +1,5 @@
 use super::{MeasurementChannel, SetValueChannel};
-use super::messages::SetValueAction;
-use super::channel_bus::{ForwardChannel, ReverseChannel, ChannelBus, IOConnector};
+use super::channel_bus::IOConnector;
 use crate::util::QualifiedPath;
 use crate::mqtt::MqttService;
 

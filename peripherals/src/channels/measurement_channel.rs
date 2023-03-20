@@ -1,9 +1,10 @@
 use serde::Serialize;
-use super::channel_bus::{ChannelBus, ForwardChannel, IOConnector};
+use super::channel_bus::{ForwardChannel, IOConnector};
 use crate::util::QualifiedPath;
+use super::messages::Measurement;
 
 pub struct MeasurementChannel<V: Clone + Serialize> {
-  pub channel: ForwardChannel<V>
+  pub channel: ForwardChannel<Measurement<V>>
 }
 
 impl<V: Clone + Serialize> MeasurementChannel<V> {
@@ -13,8 +14,16 @@ impl<V: Clone + Serialize> MeasurementChannel<V> {
     }
   }
 
-  pub fn sample(&self, v: V) -> anyhow::Result<()>  {
-    self.channel.send(v)
+  pub fn sample(&self, v: V) {
+    match self.channel.send(Measurement {
+      timestamp: "now".to_owned(),
+      value: v
+    }) {
+        Ok(_) => (),
+        Err(_) => {
+          log::warn!("failed sending value");
+        },
+    }
   }
 }
 

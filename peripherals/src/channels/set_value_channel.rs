@@ -1,14 +1,17 @@
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use super::messages::SetValueAction;
-use super::channel_bus::{ChannelBus, ForwardChannel, ReverseChannel, IOConnector};
+use super::channel_bus::{ForwardChannel, ReverseChannel, IOConnector};
 use crate::util::QualifiedPath;
+use super::messages::Measurement;
 
-pub struct SetValueChannel<V: Clone> {
+pub struct SetValueChannel<V: Clone + Serialize + DeserializeOwned> {
   id: String,
-  pub reader: ForwardChannel<V>,
+  pub reader: ForwardChannel<Measurement<V>>,
   pub action: ReverseChannel<SetValueAction<V>>
 }
+
+// trait ActionHandler<V> : FnMut(SetValueAction<V>, &dyn FnOnce(V) -> anyhow::Result<()>) {}
 
 impl<V: Clone + Serialize + DeserializeOwned> SetValueChannel<V> {
   pub fn new(id: &str) -> Self {
@@ -19,11 +22,29 @@ impl<V: Clone + Serialize + DeserializeOwned> SetValueChannel<V> {
     }
   }
 
-  pub fn handle_actions<F>(&self, mut f: F) where F: FnMut(SetValueAction<V>, &ForwardChannel<V>) {
+  // pub fn send_current(&self, v: V) -> anyhow::Result<()> {
+  //   self.reader.send(Measurement {
+  //     timestamp: "now".to_owned(),
+  //     value: v
+  //   })
+  // }
+
+  pub fn handle_actions<F>(&self, mut f: F) 
+  where F: FnMut(SetValueAction<V>, &dyn Fn(V) -> anyhow::Result<()>) -> anyhow::Result<()> {
+    let send_current = |v: V| self.reader.send(Measurement {
+      timestamp: "now".to_owned(),
+      value: v
+    });
+
     match &self.action.receiver {
       Some(receiver) => {
         while let Some(v) = receiver.next() {
-          f(v, &self.reader);
+          match f(v, &send_current) {
+            Ok(_) => (),
+            Err(_) => {
+              log::warn!("failed sending data")
+            },
+        };
         }     
       },
       None => (),
