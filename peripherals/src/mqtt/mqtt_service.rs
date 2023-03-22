@@ -5,6 +5,7 @@ use serde::de::DeserializeOwned;
 use std::sync::mpsc;
 use super::{MessageReceiver, MessageSender};
 
+#[derive(Clone)]
 pub struct MqttServiceOptions {
   pub host: String, 
   pub client_id: String, 
@@ -12,6 +13,7 @@ pub struct MqttServiceOptions {
   pub password: String
 }
 
+#[derive(Debug)]
 pub struct StrMessage {
   pub topic: String,
   pub payload: String,

@@ -8,4 +8,6 @@ pub use mqtt_service::{MqttServiceOptions, MqttPublisher, MqttSubscriber, MqttSe
 pub mod paho_mqtt_service;
 #[cfg(feature = "desktop")]
 pub use paho_mqtt_service::PahoMqttService as MqttServiceImpl;
+#[cfg(feature = "desktop")]
+pub use paho_mqtt_service::PahoAsyncMqttService as MqttAsyncServiceImpl;
 

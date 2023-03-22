@@ -5,7 +5,8 @@ members = [
   "dynsys",  
   "peripherals",
   "blocks",
-  "systems"
+  "systems",
+  "db-collector"
 ]
 
 exclude = [

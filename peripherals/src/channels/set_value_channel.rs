@@ -1,11 +1,9 @@
-use serde::Serialize;
-use serde::de::DeserializeOwned;
 use super::messages::SetValueAction;
 use super::channel_bus::{ForwardChannel, ReverseChannel, IOConnector};
 use crate::util::QualifiedPath;
-use super::messages::Measurement;
+use super::messages::{Measurement, MeasurementValueTrait};
 
-pub struct SetValueChannel<V: Clone + Serialize + DeserializeOwned> {
+pub struct SetValueChannel<V: MeasurementValueTrait> {
   id: String,
   pub reader: ForwardChannel<Measurement<V>>,
   pub action: ReverseChannel<SetValueAction<V>>
@@ -13,7 +11,7 @@ pub struct SetValueChannel<V: Clone + Serialize + DeserializeOwned> {
 
 // trait ActionHandler<V> : FnMut(SetValueAction<V>, &dyn FnOnce(V) -> anyhow::Result<()>) {}
 
-impl<V: Clone + Serialize + DeserializeOwned> SetValueChannel<V> {
+impl<V: MeasurementValueTrait> SetValueChannel<V> {
   pub fn new(id: &str) -> Self {
     SetValueChannel {
       id: id.to_owned(),
@@ -31,10 +29,7 @@ impl<V: Clone + Serialize + DeserializeOwned> SetValueChannel<V> {
 
   pub fn handle_actions<F>(&self, mut f: F) 
   where F: FnMut(SetValueAction<V>, &dyn Fn(V) -> anyhow::Result<()>) -> anyhow::Result<()> {
-    let send_current = |v: V| self.reader.send(Measurement {
-      timestamp: "now".to_owned(),
-      value: v
-    });
+    let send_current = |v: V| self.reader.send(Measurement::new(v));
 
     match &self.action.receiver {
       Some(receiver) => {
@@ -52,7 +47,7 @@ impl<V: Clone + Serialize + DeserializeOwned> SetValueChannel<V> {
   }
 }
 
-impl<V: Clone + Serialize + DeserializeOwned> IOConnector for SetValueChannel<V> {
+impl<V: MeasurementValueTrait> IOConnector for SetValueChannel<V> {
   fn connect_io(&mut self, comm: &mut dyn crate::mqtt::MqttService, qpath: &QualifiedPath) {
       self.reader.connect_io(comm, &qpath.append(&self.id));
       self.action.connect_io(comm, &qpath.append(&self.id));

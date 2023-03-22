@@ -1,10 +1,24 @@
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use chrono::{DateTime, Utc};
+use std::time::{SystemTime};
+
+pub trait MeasurementValueTrait: Clone + std::fmt::Debug + Serialize + DeserializeOwned {}
+impl<V> MeasurementValueTrait for V where V: Clone + std::fmt::Debug + Serialize + DeserializeOwned {}
 
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Measurement<V: Clone + Serialize> {
-  pub timestamp: String,
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Measurement<V> {
+  pub timestamp: DateTime<Utc>,
   pub value: V
+}
+
+impl<V: MeasurementValueTrait> Measurement<V> {
+  pub fn new(value: V) -> Self {
+    Self { 
+      timestamp: SystemTime::now().into(), 
+      value 
+    }
+  }
 }
 
 

@@ -1,9 +1,11 @@
 use paho_mqtt as mqtt;
-use futures::{executor::block_on, stream::StreamExt};
+use futures::executor::block_on; 
+use futures::stream::{Stream, StreamExt};
 use std::collections::HashMap;
 use super::mqtt_service::{MqttServiceOptions, MqttPublisher, StrMessage, MqttSubscriber, MqttService};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
+use std::pin::Pin;
 
 pub struct PahoMqttService {
   client: Arc<mqtt::AsyncClient>,
@@ -117,4 +119,56 @@ impl MqttService for PahoMqttService {
     self.client.subscribe(topic, mqtt::QOS_0);
     MqttSubscriber { subscriber_rx }
   }
+}
+
+
+
+#[cfg(feature = "desktop")]
+pub struct PahoAsyncMqttService {
+  pub client: mqtt::AsyncClient,
+  pub stream: Pin<Box<dyn Stream<Item = Option<StrMessage>>>>
+}
+
+impl PahoAsyncMqttService {
+  pub async fn new(opts: &MqttServiceOptions, topic: &str) -> anyhow::Result<Self> {
+    let mut client = mqtt::CreateOptionsBuilder::new()
+      .server_uri(&opts.host)
+      .client_id(&opts.client_id)
+      .persistence(None)
+      .create_client().unwrap();
+    
+    let ssl_opts = mqtt::SslOptionsBuilder::new()
+      // .trust_store(trust_store)?
+      // .key_store(key_store)?
+      .finalize();
+  
+    let conn_opts = mqtt::ConnectOptionsBuilder::new()
+      .ssl_options(ssl_opts)
+      .user_name(&opts.user)
+      .password(&opts.password)
+      .finalize();
+    
+    let msg_receiver = client.get_stream(25);
+
+    println!("Connecting to the MQTT server...");
+    client.connect(conn_opts).await?;
+    println!("Connected to the MQTT server");
+    println!("Subscribing to {}", topic);
+    client.subscribe(topic, paho_mqtt::QOS_0);
+    
+
+    Ok(Self {
+      client: client,
+      stream: Box::pin(msg_receiver.map(|msg_opt| {
+        msg_opt.map(|msg| {
+          let topic = msg.topic();              
+          let payload = std::str::from_utf8(msg.payload()).unwrap();
+          StrMessage { 
+            topic: topic.to_owned(), 
+            payload: payload.to_owned() 
+          }
+        })
+      }))
+    })
+  }  
 }
