@@ -2,7 +2,7 @@ pub mod traits;
 pub use traits::{MessageReceiver, MessageSender};
 
 pub mod mqtt_service;
-pub use mqtt_service::{MqttServiceOptions, MqttPublisher, MqttSubscriber, MqttService};
+pub use mqtt_service::{MqttServiceOptions, MqttPublisher, MqttSubscriber, MqttService, StrMessage};
 
 #[cfg(feature = "desktop")]
 pub mod paho_mqtt_service;

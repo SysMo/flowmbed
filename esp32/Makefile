@@ -9,11 +9,17 @@ terminal/clear:
 
 build/pre: terminal/clear
 
+code:
+	. ~/export-esp.sh && code .
+
 check_credentials:
 	echo ${RUST_ESP32_STD_DEMO_WIFI_PASS}
 
 clean:
 	cargo clean
+
+dep-tree:
+	. ~/export-esp.sh && cargo tree
 
 deepclean:
 	rm -rf target
@@ -35,7 +41,7 @@ bin/%/flash: build/pre
 monitor:
 	cargo espflash monitor
 
-STANDALONE_EXAMPLES= 10_gpio 11_i2c 12_one_wire 13_pwm_motor_control 14_mqtt 15_mqtt_eth
+STANDALONE_EXAMPLES= 10_gpio 11_i2c 12_one_wire 13_pwm_motor_control 14_mqtt 15_mqtt_eth 21_bioreactor_model_esp
 define make-standalone-target
 $1/build: bin/$1/build
 $1/flash: bin/$1/flash

@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
-use chrono::{DateTime, Utc};
-use std::time::{SystemTime};
+use time::OffsetDateTime;
 
 pub trait MeasurementValueTrait: Clone + std::fmt::Debug + Serialize + DeserializeOwned {}
 impl<V> MeasurementValueTrait for V where V: Clone + std::fmt::Debug + Serialize + DeserializeOwned {}
@@ -8,14 +7,15 @@ impl<V> MeasurementValueTrait for V where V: Clone + std::fmt::Debug + Serialize
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Measurement<V> {
-  pub timestamp: DateTime<Utc>,
+  #[serde(with = "time::serde::iso8601")]
+  pub timestamp: OffsetDateTime,
   pub value: V
 }
 
 impl<V: MeasurementValueTrait> Measurement<V> {
   pub fn new(value: V) -> Self {
     Self { 
-      timestamp: SystemTime::now().into(), 
+      timestamp: OffsetDateTime::now_utc(), 
       value 
     }
   }

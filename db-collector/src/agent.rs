@@ -1,8 +1,9 @@
 use flowmbed_peripherals::mqtt::mqtt_service::StrMessage;
-// use influxdb::{Query, Timestamp, ReadQuery, Type, WriteQuery};
+use influxdb::{Query, Timestamp};
 use flowmbed_peripherals::mqtt::{MqttAsyncServiceImpl, MqttServiceOptions};
 use flowmbed_peripherals::channels::messages::{Measurement, MeasurementValueTrait};
-use chrono::{DateTime, Utc};
+// use chrono::{DateTime, Utc};
+use time::{OffsetDateTime, Time};
 
 pub struct InfluxDbOptions {
   pub host: String,
@@ -12,7 +13,7 @@ pub struct InfluxDbOptions {
 }
 
 pub struct MeasurementPoint<'a, V: MeasurementValueTrait> {
-  pub timestamp: DateTime<Utc>,
+  pub timestamp: OffsetDateTime,
   pub measurement: &'a str,
   pub sensor: &'a str,
   pub value: V
@@ -81,8 +82,10 @@ impl InfluxDbAgent {
 
   async fn save_measurement<'a, V: MeasurementValueTrait + Into<influxdb::Type>> (db_client: &influxdb::Client, point: MeasurementPoint<'a, V>) {
     let measurement =point.sensor;
+    let timestamp = Timestamp::Milliseconds(point.timestamp.millisecond() as u128);
+
     let wq1 = influxdb::WriteQuery::new(
-        point.timestamp.into(), measurement,
+        timestamp, measurement,
       )
       .add_tag("sensor", point.sensor)
       .add_field("value", point.value.clone());
