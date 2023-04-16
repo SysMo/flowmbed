@@ -14,8 +14,10 @@ pub struct Measurement<V> {
 
 impl<V: MeasurementValueTrait> Measurement<V> {
   pub fn new(value: V) -> Self {
+    let timestamp = OffsetDateTime::now_utc();
+    log::info!("Created timestamp {}", timestamp);
     Self { 
-      timestamp: OffsetDateTime::now_utc(), 
+      timestamp: timestamp, 
       value 
     }
   }

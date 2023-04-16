@@ -1,3 +1,5 @@
+#![feature(generic_const_exprs)]
+
 pub mod util;
 pub mod device;
 pub mod sensors;
