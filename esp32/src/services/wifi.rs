@@ -12,13 +12,13 @@ use anyhow::Result;
 struct Config {
   ssid: &'static str,
   password: &'static str,
-  channel: Option<u8>
+  // channel: Option<u8>
 }
 
-static config: Config = Config {
+static CONFIG: Config = Config {
   ssid: env!("ESP32_WIFI_SSID"),
   password: env!("ESP32_WIFI_PASS"),
-  channel: Some(1)
+  // channel: Some(1)
 };
 
 pub fn start(
@@ -27,7 +27,7 @@ pub fn start(
 ) -> Result<Box<EspWifi<'static>>> {
   use std::net::Ipv4Addr;
 
-  use esp_idf_svc::handle::RawHandle;
+  // use esp_idf_svc::handle::RawHandle;
 
   let mut wifi = Box::new(EspWifi::new(modem, sysloop.clone(), None)?);
   info!("Wifi created, about to scan");
@@ -35,26 +35,26 @@ pub fn start(
 
   let ap_infos = wifi.scan()?;
 
-  let ours = ap_infos.into_iter().find(|a| a.ssid == config.ssid);
+  let ours = ap_infos.into_iter().find(|a| a.ssid == CONFIG.ssid);
 
   let net = match ours {
       Some(net) => net,
       None => {
         
           error!(
-            "Configured access point {} not found during scanning", config.ssid
+            "Configured access point {} not found during scanning", CONFIG.ssid
           );
           bail!(
-            "Configured access point {} not found during scanning", config.ssid
+            "Configured access point {} not found during scanning", CONFIG.ssid
           )
       }
   };
 
-  let channel = Some(config.channel.unwrap_or(net.channel));
+  // let channel = Some(config.channel.unwrap_or(net.channel));
 //   let auth_method = net.auth_method;
   info!(
     "Found configured access point {} on channel {}",
-    config.ssid, net.channel);
+    CONFIG.ssid, net.channel);
 
   wifi.set_configuration(&Configuration::Client(
     // ClientConfiguration {
@@ -65,8 +65,8 @@ pub fn start(
     // },
 
       ClientConfiguration {
-          ssid: config.ssid.into(),
-          password: config.password.into(),
+          ssid: CONFIG.ssid.into(),
+          password: CONFIG.password.into(),
           ..Default::default()
       }
 

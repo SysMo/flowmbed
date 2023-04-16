@@ -1,6 +1,6 @@
 include credentials.vars
 # FLASH_SPEED= 460080
-# FLASH_SPEED = 115200
+#FLASH_SPEED = 115200
 FLASH_SPEED = 920160
 FLASH_FLAGS= --partition-table partitions.csv --baud ${FLASH_SPEED} --monitor
 
@@ -41,7 +41,7 @@ bin/%/flash: build/pre
 monitor:
 	cargo espflash monitor
 
-STANDALONE_EXAMPLES= 10_gpio 11_i2c 12_one_wire 13_pwm_motor_control 14_mqtt 15_mqtt_eth 21_bioreactor_model_esp
+STANDALONE_EXAMPLES= 10_gpio 11_i2c 12_one_wire 13_pwm_motor_control 14_mqtt 15_mqtt_eth 21_bioreactor_model_esp 22_bioreactor_esp
 define make-standalone-target
 $1/build: bin/$1/build
 $1/flash: bin/$1/flash

@@ -36,7 +36,7 @@ impl EmbeddedMqttService {
 
     log::info!("Connecting to the MQTT server...");
 
-    let (mut raw_client, mut connection) = 
+    let (raw_client, mut connection) = 
       EspMqttClient::new_with_conn(opts.host, &config).unwrap();
 
     let client = Arc::new(Mutex::new(raw_client));
@@ -131,7 +131,7 @@ impl EmbeddedMqttService {
           log::info!("Publishing message: [{}] {}", msg.topic,  msg.payload);
           client.lock().unwrap().publish(
             &msg.topic, QoS::AtMostOnce, false, msg.payload.as_bytes()
-          );
+          ).unwrap();
         }
       }).unwrap();
 

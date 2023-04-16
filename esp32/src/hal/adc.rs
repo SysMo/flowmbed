@@ -1,5 +1,5 @@
 use flowmbed_peripherals::sensors::traits as sensors;
-use flowmbed_dynsys::core::{Float, DynRefMut};
+use flowmbed_dynsys::core::{Float};
 use esp_idf_hal::adc;
 use esp_idf_hal::gpio;
 
